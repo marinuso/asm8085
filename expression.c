@@ -394,6 +394,16 @@ void free_stack(struct token_stack_node *entry) {
     }
 }
 
+void free_stack_from_begin(struct token_stack_node *entry) {
+    struct token_stack_node *next = entry;
+    while (next != NULL) {
+        entry = next;
+        next = entry->prev;
+        free(entry);
+    }
+}
+
+
 // find RPN execution order for tokens (using shunting yard algorithm)
 struct token_stack_node *execution_order(const struct token *tok, const struct lineinfo *info) {
     struct token_stack_node *out_stack = NULL, *op_stack = NULL;
@@ -553,10 +563,18 @@ int eval_rpn_queue(const struct token_stack_node *node, const struct varspace *v
 
 int evaluate(const char *text, const struct varspace *vs, const struct lineinfo *info, int location) {
     char error = 0;
+    int result = 0;
     struct token *t = tokenize(text, info, &error);
-    if (t==NULL || error) return 0; // an error message will have already been printed
+    if (t==NULL || error) goto result; // an error message will have already been printed
     struct token_stack_node *n = execution_order(t, info);
-    if (n==NULL) return 0;
-    return eval_rpn_queue(n, vs, info, location);
+    if (n==NULL) goto free_queue;
+    result = eval_rpn_queue(n, vs, info, location);
+
+free_tokens:
+    free_tokens(t);
+free_queue:
+    free_stack_from_begin(n);
+result:
+    return result;
 }
 
