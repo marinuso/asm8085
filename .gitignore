@@ -3,3 +3,4 @@
 .*.sw?
 *.o
 asm8085
+tests/tests
