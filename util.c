@@ -30,8 +30,8 @@ char *copy_string_part(const char *begin, const char *end) {
 }
 
 // Scan ahead in string until predicate has boolean value
-char *scan_ahead(const char *string, int (*predicate)(int), int value) {
-    while (*string && !predicate(*string) != !value) *string++;
+const char *scan_ahead(const char *string, int (*predicate)(int), int value) {
+    while (*string && !predicate(*string) != !value) string++;
     return string;
 }
 

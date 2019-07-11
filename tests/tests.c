@@ -12,6 +12,8 @@ struct test_result {
     char *fail_message;
 };
 
+#define MAX_FAIL_MESSAGE_LEN 128
+
 /* FAIL and SUCCEED */
 #define SUCCEED do { \
     _test_result.result = 1; \
@@ -19,9 +21,20 @@ struct test_result {
     goto _test_final; \
 } while(0)
 
-#define FAIL(msg) do { \
+#define FAIL_SET(msg, ...) do { \
     _test_result.result = 0; \
-    _test_result.fail_message = msg; \
+    _test_result.fail_message = calloc(MAX_FAIL_MESSAGE_LEN,sizeof(char)); \
+    snprintf(_test_result.fail_message, MAX_FAIL_MESSAGE_LEN, msg, ##__VA_ARGS__); \
+} while(0)
+
+#define FAIL(msg, ...) do { \
+    FAIL_SET(msg, ##__VA_ARGS__); \
+    goto _test_final; \
+} while(0)
+    
+#define FAILC(msg, code, ...) do { \
+    FAIL_SET(msg, ##__VA_ARGS__); \
+    code; \
     goto _test_final; \
 } while(0)
 
@@ -31,6 +44,7 @@ struct test_result test_##name() { \
     struct test_result _test_result; \
     startup; \
     test_code; \
+    SUCCEED; \
 _test_final: \
     shutdown; \
     return _test_result; \
@@ -57,7 +71,7 @@ struct test {
 
 /* Run a certain test */
 char run_test(struct test t) {
-    fprintf(stderr, "%-20s: ", t.name);
+    fprintf(stderr, "%-30s: ", t.name);
     struct test_result r = t.testcode();
     if (r.result) {
         fprintf(stderr, "pass.\n");

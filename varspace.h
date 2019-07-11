@@ -31,7 +31,7 @@ void *free_varspace(struct varspace *);
 
 // Get the value of a variable. Returns false if it doesn't exist. 
 // The base is added if the name starts with a period.
-char get_var(struct varspace *, const char *name, int *value);
+char get_var(const struct varspace *, const char *name, int *value);
 
 // Set the value of a variable. The base is added if the name starts with a period.
 void set_var(struct varspace *, const char *name, int value);

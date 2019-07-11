@@ -2,5 +2,6 @@
 
 // This file includes all tests
 
+#include "util_tests.h"
 #include "varspace_tests.h"
-
+#include "expression_tests.h"

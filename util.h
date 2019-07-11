@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <ctype.h>
 
 #define FALSE 0
 #define TRUE (!FALSE)
@@ -22,7 +23,7 @@ char *copy_string(const char *);
 
 // Scan ahead in string until predicate has given boolean value or end of string is reached
 // (the predicate type is to match that of isspace and the like)
-char *scan_ahead(const char *, int (*)(int), int);
+const char *scan_ahead(const char *, int (*)(int), int);
 
 // See if a string has a prefix
 char has_case_insensitive_prefix(const char *string, const char *prefix);

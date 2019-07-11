@@ -5,10 +5,12 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <ctype.h>
 
 #include "util.h"
 #include "parser.h"
 #include "expr_fns.h"
+#include "varspace.h"
 
 #define MAX_NUM_LEN 10  // maximum length of number token
 #define EVAL_STACK_SIZE 1024
@@ -28,9 +30,9 @@ enum keyword {
 // token stack
 
 struct token_stack_node {
-    struct token *token;
+    const struct token *token;
     struct token_stack_node *prev, *next;
-}
+}; 
 
 // token 
 struct token {
@@ -50,6 +52,8 @@ struct token *tokenize(const char *text, const struct lineinfo *info, char *erro
 // out_ptr points at location after token
 struct token *get_token(const char *ptr, const char **out_ptr, const struct lineinfo *info, char accept_token, char *error);
 
+// evaluate a string
+int evaluate(const char *text, const struct varspace *vs, const struct lineinfo *info, int location);
 
 
 #endif
