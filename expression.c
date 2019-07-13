@@ -570,7 +570,6 @@ int evaluate(const char *text, const struct varspace *vs, const struct lineinfo 
     if (n==NULL) goto free_queue;
     result = eval_rpn_queue(n, vs, info, location);
 
-free_tokens:
     free_tokens(t);
 free_queue:
     free_stack_from_begin(n);

@@ -21,8 +21,8 @@ UTIL_TEST(prefix, {
     char *tb = "FOO";
     char *tc = "bar";
     
-    if (! has_case_insensitive_prefix(ta, tb)) FAIL("");
-    if (has_case_insensitive_prefix(ta, tc)) FAIL("");
+    if (! has_case_insensitive_prefix(ta, tb)) FAIL("prefix not found, but it's there");
+    if (has_case_insensitive_prefix(ta, tc)) FAIL("prefix found, but it's not there");
     SUCCEED;
 })
 
@@ -46,7 +46,15 @@ UTIL_TEST(scan_ahead, {
 UTIL_TEST(copy_string_pred, {
     char *test = "hello     world";
     s = copy_string_pred(test, isspace, TRUE);
-    if (strcmp(s, "hello")) FAIL("");
+    if (strcmp(s, "hello")) FAIL("copy_string_pred result was: %s", s);
     SUCCEED;
 })
+
+UTIL_TEST(trim_string, {
+    const char *test = "   hello world    ";
+    char *s = trim_string(test);
+    if (strcmp(s, "hello world")) FAIL("trim_string returned \"%s\"", s);
+    SUCCEED;
+})
+
 

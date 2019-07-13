@@ -14,8 +14,9 @@ void free_argmt(struct argmt *argmt) {
         free(argmt->raw_text);
         free(argmt);
         argmt = next;
-    };
+    }
 }
+
 
 /* Free all the memory associated with one line. */
 void free_line_mem(struct line *line) {
@@ -80,36 +81,29 @@ struct line *read_file(const char *filename, char *error) {
     return begin;
 
 }
-
-
-/* Copy the next word (limited by whitespace) into the given buffer, and return
- * the length. */
-int next_word(const char *src, char *dst, int maxlen) {
-    int length = 0;
-    while (*src && !isspace(src) && length++ < maxlen) *dst++ = *src++;
-    *dst = '\0';
-    return length;
-}
     
 /* Set the label, if there is one. Returns pointer to start of instruction or to end of string. */
 char *parse_label(struct line *l) {
-    char parse_buf[LINE_BUF_SIZE], *ptr = l->raw_text;
+    char *label, *ptr = l->raw_text;
     int length = 0;
-    
-    if (isspace(ptr)) {
+    if (*ptr == '\0') {
+        // Empty line, no label 
+        l->label = NULL;
+    } else if (isspace(*ptr)) {
         // This line starts with whitespace and has no label.
         l->label = NULL;
     } else {
         // There is a label
-        length = next_word(ptr, parse_buf, LINE_BUF_SIZE);
+        label = copy_string_pred(ptr, isspace, TRUE);
+        length = strlen(label);
         ptr += length;
         
         // If the label ends with ':', that's not part of the label.
-        if (parse_buf[length-1] == ':') {
-            parse_buf[length-1] == '\0';
+        if (label[length-1] == ':') {
+            label[length-1] = '\0';
         }
         
-        l->label = copy_string(parse_buf);
+        l->label = label;
     }
     
     // Skip ahead to next nonwhitespace character or end of line
@@ -119,9 +113,6 @@ char *parse_label(struct line *l) {
         
 /* Set the instruction */
 const char *parse_instruction(struct line *l, const char *ptr) {
-    char parse_buf[LINE_BUF_SIZE];
-    int length; 
-    
     if (!*ptr) {
         // There is no instruction on this line.
         l->instr.type = NONE;
@@ -129,9 +120,8 @@ const char *parse_instruction(struct line *l, const char *ptr) {
         l->instr.text = NULL;
     } else {
         // Get the instruction
-        length = next_word(ptr, parse_buf, LINE_BUF_SIZE);
-        ptr += length;
-        l->instr.text = copy_string(parse_buf);
+        l->instr.text = copy_string_pred(ptr, isspace, TRUE);
+        ptr += strlen(l->instr.text);
         
         // See if it is an opcode or directive
         if ((l->instr.instr = op_from_str(l->instr.text)) != -1) {
@@ -158,8 +148,8 @@ const char *parse_instruction(struct line *l, const char *ptr) {
 void parse_arguments(struct line *l, const char *ptr, char *error) {
     char parse_buf[LINE_BUF_SIZE], strdelim=0;
     int bracket_depth = 0, length = 0;
-    struct argmt *prev, *cur = NULL;
-    
+    struct argmt *prev = NULL, *cur = NULL;
+  
     l->n_argmts = 0;
     l->argmts = NULL;
         
@@ -178,7 +168,7 @@ void parse_arguments(struct line *l, const char *ptr, char *error) {
         bracket_depth = 0;
         strdelim = '\0';
         
-        while (*ptr && !(bracket_depth == 0 && strdelim == 0 && *ptr == ',')) {
+        while (*ptr && !(bracket_depth == 0 && strdelim == 0 && *ptr == ',') && length<LINE_BUF_SIZE) {
             parse_buf[length++] = *ptr;
             
             // Check for string begin and end
@@ -189,10 +179,13 @@ void parse_arguments(struct line *l, const char *ptr, char *error) {
             } else if (strdelim && *ptr == '\\' && *(ptr+1) == strdelim) {
                 // Handle escaped string delimiter
                 parse_buf[length++] = *ptr++;
-            } else 
+            }
+            
             // Handle brackets     
-            if (*ptr == '(') bracket_depth++;
-            else if (*ptr == ')') bracket_depth--;
+            if (!strdelim) {
+                if (*ptr == '(') bracket_depth++;
+                else if (*ptr == ')') bracket_depth--;
+            }
             
             ptr++;
         }
@@ -205,6 +198,8 @@ void parse_arguments(struct line *l, const char *ptr, char *error) {
             error_on_line(stderr, &l->info, "non-terminated string.");
             *error = 1;
         } else {
+            parse_buf[length] = '\0';
+                        
             // It's OK, so store the current argument.
             prev = cur;
             
@@ -213,22 +208,25 @@ void parse_arguments(struct line *l, const char *ptr, char *error) {
             if (!cur) {
                 FATAL_ERROR("failed to allocate memory for argument");
             }
-            
+           
             // If this is the first argument, store it in the line. Otherwise, chain it to the previous one.
-            if (l->argmts == NULL) l->argmts = cur;
-            if (prev != NULL) prev->next_argmt = cur;
-            
+            if (l->argmts == NULL) {
+                l->argmts = cur;
+            } else {
+                prev->next_argmt = cur;
+            }
+           
             // There is one more argument than before.
             l->n_argmts++;
-          
-            parse_buf[length] = '\0';
+
             cur->raw_text = copy_string(parse_buf);
             cur->parsed = FALSE;
             cur->next_argmt = NULL; 
         }
-            
+
         // Skip over the ',' we might be on.
         if (*ptr == ',') ptr++;
+        
     } 
 }
 
@@ -257,12 +255,11 @@ char *comment_stop(char *ptr) {
                 
 /* Parse a line. */
 struct line *parse_line(const char *text, struct line *prev, const char *filename, char *error) {
-    char parse_buf[LINE_BUF_SIZE], *comment;
+    char *comment;
     const char *parse_ptr;
-    int length;
-    
     struct line *l = calloc(1, sizeof(struct line));
-    if (!l) return NULL;
+   
+    if (!l) FATAL_ERROR("failed to allocate space for line");
     
     // Link this line to the previous line if there is one
     if (prev) {
@@ -308,6 +305,6 @@ enum directive dir_from_str(const char *s) {
 
 // Print an error message given line info
 void error_on_line(FILE *file, const struct lineinfo *info, const char *message) {
-    fprintf(stderr, PARSE_ERROR "%s\n", message, info->filename, info->lineno);
+    fprintf(stderr, PARSE_ERROR "%s\n", info->filename, info->lineno, message);
 }
 

@@ -5,3 +5,4 @@
 #include "util_tests.h"
 #include "varspace_tests.h"
 #include "expression_tests.h"
+#include "parser_tests.h"

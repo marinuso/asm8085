@@ -22,8 +22,8 @@
 
 #define TOKC(what, try_op, code, msg, ...) do { \
     t = get_token(what, &out_ptr, &info, try_op, &error); \
-    if (t==NULL) FAIL("get_token returned NULL on " #what, ##__VA_ARGS__); \
-    if (error) FAILC("get_token returned error on " #what, free_tokens(t), ##__VA_ARGS__); \
+    if (t==NULL) FAIL("get_token returned NULL on %s", #what); \
+    if (error) FAILC("get_token returned error on %s", free_tokens(t), #what); \
     { \
         char ok = 0; \
         code; \
@@ -39,8 +39,8 @@
 // Macro: try to tokenize something, make sure that type and value match
 #define TOKM(what, try_op, ttype, tvalue) \
     TOKC(what, try_op, ok = TOKTEST(t, ttype, tvalue), \
-            "given " #what ", tokenizer failed to produce " #ttype " (%d) of " #tvalue " (%d); result was: %d / %d.", \
-            ttype, tvalue, t->type, t->value)
+            "given %s, tokenizer failed to produce %s (%d) of %s (%d); result was: %d / %d.", \
+            #what, #ttype, ttype, #tvalue, tvalue, t->type, t->value)
 
 
 // Macro: test an operator
@@ -50,8 +50,8 @@
 // Macro: test a name
 #define TOKNAME(str) \
     TOKC(str, NAME, ok = !strcmp(t->text, str) && t->type == NAME, \
-       "tokenizer failed to parse name " #str "; result was %d, \"%s\"", \
-       t->type, t->value)
+       "tokenizer failed to parse name %s; result was %d, \"%s\"", \
+       #str, t->type, t->text)
 
 EX_TEST(single_tokens, {
     struct token *t;
@@ -115,9 +115,9 @@ EX_TEST(single_tokens, {
 
 // Macro: see if token matches value and fail otherwise, freeing 't'; on success advance token pointer
 #define TOKCHK(tok, typ, val) do { \
-    if ((tok) == NULL) FAILC("got null token instead of " #typ " of " #val, free_tokens(t)); \
+    if ((tok) == NULL) FAILC("got null token instead of %s of %s", free_tokens(t), #typ, #val); \
     if (! TOKTEST(tok,typ,val)) { \
-        FAILC("expected " #typ " (%d) of " #val ", but got %d / %d '%s' ", free_tokens(t), tok->type, tok->value, tok->text); \
+        FAILC("expected %s (%d) of %s, but got %d / %d '%s' ", free_tokens(t), #typ, typ, #val, tok->type, tok->value, tok->text); \
     } \
     tok = tok->next_token; \
 } while(0);
@@ -126,7 +126,7 @@ EX_TEST(single_tokens, {
 #define TOKCHK_NAME(tok, nam) do { \
     if (tok == NULL) FAILC("got null token instead of name of " #nam, free_tokens(t)); \
     if (tok->type != NAME) FAILC("token type is %d, not NAME (%d) ", free_tokens(t), tok->type, NAME); \
-    if (strcmp(tok->text, nam)) FAILC("expected name " #nam " but got \"%s\"", free_tokens(t), tok->text); \
+    if (strcmp(tok->text, nam)) FAILC("expected name %s, but got \"%s\"", free_tokens(t), #nam, tok->text); \
     tok = tok->next_token; \
 } while(0);
  
@@ -176,7 +176,7 @@ EX_TEST(token_string, {
 #define EVAL(str, val) { \
     int ret = evaluate(str, vs, &info, LOC); \
     if ((val) != ret) { \
-        FAIL(#str " should evaluate to " #val " (%d), but evaluates to %d", val, ret); \
+        FAIL("%s should evaluate to %s (%d), but evaluates to %d", #str, #val, val, ret); \
     } \
 }
 
@@ -234,6 +234,7 @@ EX_TEST(evaluation_order, {
     EVAL_C( (1 + 10) / 5 * (2 - 6) );
     EVAL_C( ~( 10 + 5 ) + 6 );
     EVAL_C( 6 + ~( 10 + 5 ) );
+    
     
     // see if we can distinguish the - operator from negative numbers 
     EVAL("-5--6-7--8", 2);

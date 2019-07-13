@@ -3,6 +3,15 @@
 #include "util.h"
 
 
+// Strip a string of leading and trailing whitespace
+char *trim_string(const char *string) {
+    const char *p1 = string;
+    const char *p2 = p1 + strlen(string) - 1;
+    while (*p1 && isspace(*p1)) p1++;
+    while (p2>p1 && isspace(*p2)) p2--;
+    return copy_string_part(p1, p2+1);
+}
+
 // Make a copy of a string in memory.
 char *copy_string(const char *string) {
     size_t bufsize = strlen(string) + 1;
@@ -35,7 +44,7 @@ const char *scan_ahead(const char *string, int (*predicate)(int), int value) {
     return string;
 }
 
-// Make a copy of part of a string in memory until predicate is false or end is reached (and zero-terminate it)
+// Make a copy of part of a string in memory until predicate has value or end is reached (and zero-terminate it)
 
 char *copy_string_pred(const char *str, int (*predicate)(int), int value) {
     return copy_string_part(str, scan_ahead(str, predicate, value));

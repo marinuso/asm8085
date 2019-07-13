@@ -27,7 +27,7 @@ struct varspace {
 struct varspace *alloc_varspace();
 
 // Free a variable space and all its associated variables.
-void *free_varspace(struct varspace *);
+void free_varspace(struct varspace *);
 
 // Get the value of a variable. Returns false if it doesn't exist. 
 // The base is added if the name starts with a period.

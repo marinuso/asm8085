@@ -62,7 +62,7 @@ struct varspace *alloc_varspace() {
 }
 
 // Free a variable space and all its associated variables.
-void *free_varspace(struct varspace *vs) {
+void free_varspace(struct varspace *vs) {
     // Free all the variables first
     struct variable *var, *next = vs->variables;
     while (next != NULL) {

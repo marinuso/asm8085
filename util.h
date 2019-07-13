@@ -18,6 +18,9 @@
         exit(255); \
     } while(0)
 
+// Strip a string of leading and trailing whitespace
+char *trim_string(const char *);
+
 // Make a copy of a string (allocate new memory for it).
 char *copy_string(const char *);
 
