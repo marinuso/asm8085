@@ -85,6 +85,13 @@ TEST(parse_line, struct line *line, if(line != NULL) free_line(line, FALSE), {
     /* line with label, instruction, and arguments */
     TEST_LINE("label mov a,b", LINE_CONTENTS("label", 2, OPCODE, OP_mov));
     
+    /* commenting anything out should make it ignore that bit */
+    TEST_LINE("label mov a;,b", LINE_CONTENTS("label", 1, OPCODE, OP_mov));
+    TEST_LINE("label mov ;a,b", LINE_CONTENTS("label", 0, OPCODE, OP_mov));
+    TEST_LINE("label ;mov a,b", LINE_CONTENTS("label", 0, NONE));
+    TEST_LINE("lab;el mov a,b", LINE_CONTENTS("lab", 0, NONE));
+    TEST_LINE(";label mov a,b", LINE_CONTENTS(NULL, 0, NONE));
+    
     /* line with directive on it */
     TEST_LINE(" db 1,2,3", LINE_CONTENTS(NULL, 3, DIRECTIVE, DIR_db));
     
@@ -92,10 +99,10 @@ TEST(parse_line, struct line *line, if(line != NULL) free_line(line, FALSE), {
     TEST_LINE(" macro_name_here arg,arg,arg", LINE_CONTENTS(NULL, 3, MACRO, "macro_name_here"));
     
     /* check argument parsing */
-    TEST_LINE("label db 1, (2, 2), \"3, '3\", '4, \"4', 5, '(6', \"7)\"", {
+    TEST_LINE("label db 1, (2, 2), \"3, '3\", '4, \"4', 5, '(6', \"7)\", 'comment; char; in; string'; real comment", {
         struct argmt *arg;
         char *s;
-        LINE_CONTENTS("label", 7, DIRECTIVE, DIR_db);
+        LINE_CONTENTS("label", 8, DIRECTIVE, DIR_db);
         arg = line->argmts;
         TEST_ARGMT("1");
         TEST_ARGMT("(2, 2)");
@@ -104,6 +111,7 @@ TEST(parse_line, struct line *line, if(line != NULL) free_line(line, FALSE), {
         TEST_ARGMT("5");
         TEST_ARGMT("'(6'");
         TEST_ARGMT("\"7)\"");
+        TEST_ARGMT("'comment; char; in; string'"); 
         // this should've been the last argument
         if (arg != NULL) FAIL("spurious extra argument: '%s'", arg->raw_text);
     });
