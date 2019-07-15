@@ -32,9 +32,10 @@ void free_line_mem(struct line *line) {
  */
 struct line *free_line(struct line *line, char recursive) {
     struct line *next;
-    do {
+    do { 
         next = line->next_line;
         free_line_mem(line);
+        line = next; 
     } while (next != NULL && recursive);
     
     return next;
@@ -46,7 +47,7 @@ struct line *read_file(const char *filename, char *error) {
     
     struct line *begin = NULL, *prev = NULL, *cur = NULL;
     int idx;
-    char line_buf[LINE_BUF_SIZE], ch;
+    char line_buf[LINE_BUF_SIZE];
     FILE *file = fopen(filename, "r");
     
     if (!file) {
@@ -57,12 +58,13 @@ struct line *read_file(const char *filename, char *error) {
     
     
     while (!feof(file)) {
-        // Read a line
-        idx = 0;
-        do {
-            line_buf[idx++] = ch = fgetc(file);
-        } while (!feof(file) && ch != '\n' && idx < LINE_BUF_SIZE);
-        line_buf[idx] = '\0';
+        // Read a line      
+        if (fgets(line_buf, LINE_BUF_SIZE, file) == NULL) break; // no more characters left
+        idx = strlen(line_buf);
+        
+        // remove '(\r)\n' from end
+        if (line_buf[idx-1] == '\n') line_buf[idx-1] = '\0';
+        if (line_buf[idx-2] == '\r') line_buf[idx-2] = '\0';
         
         // Parse the line
         prev = cur; 
@@ -281,6 +283,8 @@ struct line *parse_line(const char *text, struct line *prev, const char *filenam
     
     // If there was a comment, restore it.
     if (comment) *comment = ';';
+    
+    l->next_line = NULL; 
     
     return l;
 }

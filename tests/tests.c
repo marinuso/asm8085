@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 // File containing all the tests 
 #define TESTFILE "tests_list.h"

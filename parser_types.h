@@ -6,7 +6,7 @@
 /* Represents an instruction */
 struct instr {
     // NONE means an empty line or a line with only a label on it
-    enum { NONE, OPCODE, DIRECTIVE, MACRO } type;
+    enum instr_type { NONE, OPCODE, DIRECTIVE, MACRO } type;
     int instr; // enum operator or enum directive, or -1. 
     char *text;
 };
@@ -22,7 +22,7 @@ struct argmt {
     char parsed;            /* True if the argument has already been parsed */
     char *raw_text; 
 
-    enum { REGISTER, REGPAIR, STRING, EXPRESSION } type;
+    enum argmt_type { REGISTER, REGPAIR, STRING, EXPRESSION } type;
     union {
         enum reg_e reg;
         enum reg_pair reg_pair;

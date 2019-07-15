@@ -158,7 +158,7 @@ TEST(parse_register, MKLINEINFO, (void)0, {
 #define TEST_STRING(test) TEST_STRING_2(#test, test)
 
 TEST(parse_string, MKLINEINFO; char *s = NULL, if(s!=NULL) free(s), {
-    char error;
+    char error = 0;
     TEST_STRING("hello");
     TEST_STRING("");
     TEST_STRING(" '' ");
@@ -167,3 +167,46 @@ TEST(parse_string, MKLINEINFO; char *s = NULL, if(s!=NULL) free(s), {
     TEST_STRING("f\1e\02d\003c\34b\148a");
     TEST_STRING("\xD\xE\xA\xD\xBE\xEF");
 }) 
+
+// See if we can read a file
+#define TEST_F_LINE(code) do { \
+    if (line == NULL) FAIL("line was NULL"); \
+    code; \
+    line = line->next_line; \
+} while(0)
+
+TEST(parse_file, 
+    /* startup */
+    struct line *start = NULL;
+    struct line *line = NULL;
+    char tempfile[] = "/tmp/test_asm8085_XXXXXX";
+    /* shutdown */
+,   if (start != NULL) free_line(start, TRUE);
+    unlink(tempfile); 
+    /* test */
+, {
+    char error = 0;
+    int fd = mkstemp(tempfile);
+    if (fd == -1) FAIL("could not create temporary file");
+    FILE *f = fdopen(fd, "w");
+    fputs("                        \n",f);
+    fputs("       mov    a,b       \n",f);
+    fputs("       db     1,2,3,4   \n",f);
+    fputs("label                   \n",f);
+    fputs("label2 mov    c,d       \n",f);
+    fclose(f);
+    
+    start = read_file(tempfile, &error);
+    if (error) FAIL("error reading file");
+    line = start;
+    
+    TEST_F_LINE(LINE_CONTENTS(NULL, 0, NONE));
+    TEST_F_LINE(LINE_CONTENTS(NULL, 2, OPCODE, OP_mov));
+    TEST_F_LINE(LINE_CONTENTS(NULL, 4, DIRECTIVE, DIR_db));
+    TEST_F_LINE(LINE_CONTENTS("label", 0, NONE));
+    TEST_F_LINE(LINE_CONTENTS("label2", 2, OPCODE, OP_mov));
+    
+    if (line != NULL) FAIL("spurious extra line: '%s'", line->raw_text);
+    
+    
+})
