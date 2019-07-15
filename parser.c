@@ -410,7 +410,7 @@ char *parse_str(const char *t, const struct lineinfo *info, char *error) {
                         *p++=parse_octal(t, &o);
                         t=o-1;
                     } else {
-                        error_on_line(stderr, info, "invalid escape character: '%s' (%d).", *t, *t);
+                        error_on_line(stderr, info, "invalid escape character: '%c' (%d).", *t, *t);
                         goto error;
                     }
             }
