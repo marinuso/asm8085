@@ -304,7 +304,128 @@ enum directive dir_from_str(const char *s) {
 
 
 // Print an error message given line info
-void error_on_line(FILE *file, const struct lineinfo *info, const char *message) {
-    fprintf(stderr, PARSE_ERROR "%s\n", info->filename, info->lineno, message);
+void error_on_line(FILE *file, const struct lineinfo *info, const char *message, ...) {
+    char buffer[1024];
+    va_list args;
+    va_start(args, message);
+    vsnprintf(buffer, 1024, message, args);
+    fprintf(stderr, PARSE_ERROR "%s\n", info->filename, info->lineno, buffer);
+    va_end(args);
 }
+
+/* Parse a register */
+enum reg_e parse_reg(const char *t, const struct lineinfo *info, char *error) {
+    if (!strcasecmp("a",t)) return RA; 
+    if (!strcasecmp("b",t)) return RB;
+    if (!strcasecmp("c",t)) return RC;
+    if (!strcasecmp("d",t)) return RD;
+    if (!strcasecmp("e",t)) return RE;
+    if (!strcasecmp("h",t)) return RH;
+    if (!strcasecmp("l",t)) return RL;
+    if (!strcasecmp("m",t)) return RM;
+   
+    error_on_line(stderr, info, "invalid register: '%s'; expected a, b, c, d, e, f, h, l, or m.", t); 
+    *error = TRUE;
+    return R_INV;
+}
+
+/* Parse a register pair */
+enum reg_pair parse_reg_pair(const char *t, const struct lineinfo *info, char *error) {
+    enum reg_pair v = RP_INV;
+    if (!strcasecmp("b",t))   return RPB;
+    if (!strcasecmp("d",t))   return RPD;  
+    if (!strcasecmp("h",t))   return RPH;  
+    if (!strcasecmp("sp",t))  return RPSP; 
+    if (!strcasecmp("psw",t)) return RPSP; // SP and PSW use the same encoding
+    
+    error_on_line(stderr, info, "invalid register pair: '%s'; expected b, d, h, sp or psw.", t);
+    *error = TRUE;
+    return v;
+}
+
+
+char parse_octal(const char *t, const char **out) {
+    char o = 0;
+    for (; *t >= '0' && *t <= '7'; t++) {
+        o *= 8;
+        o += *t - '0';
+    }
+    *out = t;
+    return o;
+}
+
+int hex(char t) {
+    if (t >= '0' && t <= '9') return t-'0';
+    if (t >= 'A' && t <= 'F') return t-'A'+10;
+    if (t >= 'a' && t <= 'f') return t-'a'+10;
+    return -1;
+}
+
+char parse_hex(const char *t, const char **out) {
+    char h = 0;
+    for (; hex(*t)>=0; t++) {
+        h *= 16;
+        h += hex(*t);
+    }
+    *out = t;
+    return h;
+}
+
+    
+/* Parse a string */
+char *parse_str(const char *t, const struct lineinfo *info, char *error) {
+    char *s = calloc(strlen(t), sizeof(char));
+    char *p;
+    const char *o;
+    char delim = '\0';
+    
+    // Check delimiter
+    delim = *t;
+    if (delim != '"' && delim != '\'') {
+        error_on_line(stderr, info, "invalid string: not a string delimiter: '%c'.", delim);
+        goto error;
+    }
+    t++;
+    
+    for (p=s; *t && *t != delim; t++) {
+        if (*t == '\\') {
+            // escape
+            t++;
+            switch(*t) {
+                case 'a': *p++='\a'; break;
+                case 'b': *p++='\b'; break;
+                case 'e': *p++='\e'; break;
+                case 'f': *p++='\f'; break;
+                case 'n': *p++='\n'; break;
+                case 'r': *p++='\r'; break;
+                case 't': *p++='\t'; break;
+                case 'v': *p++='\v'; break;
+                case '\\': *p++='\\'; break;
+                case '\'': *p++='\''; break;
+                case '"': *p++='"'; break;
+                case 'x': *p++=parse_hex(t+1, &o); t=o-1; break;
+                default:
+                    // Octal number?
+                    if (*t >= '0' && *t <= '7') {
+                        *p++=parse_octal(t, &o);
+                        t=o-1;
+                    } else {
+                        error_on_line(stderr, info, "invalid escape character: '%s' (%d).", *t, *t);
+                        goto error;
+                    }
+            }
+        } else {
+            // normal character
+            *p++ = *t;
+        }
+    }
+    return s; 
+    
+error:
+    free(s);
+    *error = TRUE;
+    return NULL;
+}
+
+
 

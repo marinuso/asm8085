@@ -4,9 +4,6 @@
 
 #include "../parser.h"
 
-#define PARSE_TEST(name, code) TEST(parse_##name, 0, 0, code)
-
-
 // Macro: parse a line and do some sanity checks, then run code, and free line afterwards
 #define TEST_LINE(str, code) do { \
     line = parse_line(str, NULL, "test", &error); \
@@ -114,7 +111,59 @@ TEST(parse_line, struct line *line, if(line != NULL) free_line(line, FALSE), {
         TEST_ARGMT("'comment; char; in; string'"); 
         // this should've been the last argument
         if (arg != NULL) FAIL("spurious extra argument: '%s'", arg->raw_text);
-    });
-    
-    
+    });  
 })
+
+
+#define MKLINEINFO \
+    struct lineinfo l; \
+    l.lineno = 1; \
+    l.filename = "test"; 
+
+        
+#define TEST_REG(name) do { \
+    enum reg_e v; \
+    if ((v=parse_reg(#name, &l, &error)) != R##name) FAIL("for register %s, parser returned %d", #name, v); \
+} while(0)
+    
+#define TEST_RP(name) do { \
+    enum reg_pair v; \
+    if ((v=parse_reg_pair(#name, &l, &error)) != RP##name) FAIL("for register pair %s, parser returned %d", #name, v); \
+} while(0)
+
+// Parse register names
+TEST(parse_register, MKLINEINFO, (void)0, {
+    char error;
+    TEST_REG(A);
+    TEST_REG(B);
+    TEST_REG(C);
+    TEST_REG(D);
+    TEST_REG(E);
+    TEST_REG(H);
+    TEST_REG(L);
+    TEST_REG(M);
+    TEST_RP(B);
+    TEST_RP(D);
+    TEST_RP(H);
+    TEST_RP(SP);
+    TEST_RP(PSW);
+})
+
+// Parse a string
+#define TEST_STRING_2(test, rslt) do { \
+    s = parse_str(test, &l, &error); \
+    if (strcmp(s, rslt)) FAIL("given string %s, expected \"%s\", but got \"%s\"", test, #rslt, s); \
+    free(s); s = NULL; \
+} while(0)
+#define TEST_STRING(test) TEST_STRING_2(#test, test)
+
+TEST(parse_string, MKLINEINFO; char *s = NULL, if(s!=NULL) free(s), {
+    char error;
+    TEST_STRING("hello");
+    TEST_STRING("");
+    TEST_STRING(" '' ");
+    TEST_STRING(" \"\" ");
+    TEST_STRING("\a\b\e\f\n\r\t\v\\\'\"");
+    TEST_STRING("f\1e\02d\003c\34b\148a");
+    TEST_STRING("\xD\xE\xA\xD\xBE\xEF");
+}) 

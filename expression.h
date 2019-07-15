@@ -8,7 +8,7 @@
 #include <ctype.h>
 
 #include "util.h"
-#include "parser.h"
+#include "parser_types.h"
 #include "expr_fns.h"
 #include "varspace.h"
 
