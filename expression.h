@@ -42,6 +42,21 @@ struct token {
     int value; // set if NUMBER, OPERATOR or KEYWORD.
 };
 
+// parsed expression 
+struct parsed_expr {
+    struct token_stack_node *start;
+    struct token *token_list; // so we can free the tokens afterwards
+};
+
+// free parsed expression
+void free_parsed_expr(struct parsed_expr *);
+
+// parse an expression
+struct parsed_expr *parse_expr(const char *text, const struct lineinfo *info); 
+
+// evaluate parsed expression
+int eval_expr(const struct parsed_expr *expr, const struct varspace *vs, const struct lineinfo *info, int location);
+
 // free tokens
 void free_tokens(struct token *);
 
@@ -54,6 +69,9 @@ struct token *get_token(const char *ptr, const char **out_ptr, const struct line
 
 // evaluate a string
 int evaluate(const char *text, const struct varspace *vs, const struct lineinfo *info, int location);
+
+// See if a parsed expression contains names not defined in vs.
+char contains_undefined_names(const struct parsed_expr *, const struct varspace *) ;
 
 
 #endif

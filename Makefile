@@ -12,9 +12,12 @@ test: tests/tests
 tests/tests: tests/tests.c $(OBJ) $(TESTS)
 	$(CC) $(CFLAGS) -I./tests -o tests/tests tests/tests.c $(OBJ)
 
-parser.c: parser.h parser_types.h instructions.h 
+parser_types.h: instructions.h
 
-expression.c: expression.h parser_types.h operators.h
+parser.h: parser_types.h
+
+expression.h: parser_types.h operators.h
+
 
 %.c: %.h 
 

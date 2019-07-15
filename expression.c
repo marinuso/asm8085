@@ -494,8 +494,18 @@ err_cleanup:
     return NULL;
 }
         
-       
-
+     
+// See if a parsed expression contains names not defined in vs.
+char contains_undefined_names(const struct parsed_expr *expr, const struct varspace *vs) {
+    int val;
+    const struct token_stack_node *node;
+    for (node = expr->start; node != NULL; node = node->next) {
+        const struct token *t = node->token;
+        if (t->type == NAME && !get_var(vs, t->text, &val)) return TRUE;
+    }
+    
+    return FALSE;
+}
 
 
 int eval_rpn_queue(const struct token_stack_node *node, const struct varspace *vs, const struct lineinfo *info, int location) {
@@ -560,20 +570,51 @@ int eval_rpn_queue(const struct token_stack_node *node, const struct varspace *v
     }
 }
 
+// free parsed expression
+void free_parsed_expr(struct parsed_expr *expr) {
+    if (expr != NULL) {
+        // free the stack first
+        free_stack_from_begin(expr->start);
+        // free the tokens
+        free_tokens(expr->token_list);
+        free(expr);
+    }
+}
+
+// parse an expression
+struct parsed_expr *parse_expr(const char *text, const struct lineinfo *info) {
+    char error = 0;  
+    // Tokenize
+    struct token *t = tokenize(text, info, &error);
+    if (t==NULL || error) return NULL;
+    // Figure out order of execution
+    struct token_stack_node *n = execution_order(t, info);
+    if (n==NULL) {
+        // something went wrong (the error message will have already been printed)
+        free_tokens(t);
+        return NULL;
+    } else {
+        struct parsed_expr *p = calloc(1, sizeof(struct parsed_expr));
+        if (p == NULL) FATAL_ERROR("failed to allocate space for parsed_expr");
+        p->token_list = t;
+        p->start = n;
+        return p;
+    }
+}
+
+// evaluate parsed expression
+int eval_expr(const struct parsed_expr *expr, const struct varspace *vs, const struct lineinfo *info, int location) {
+    return eval_rpn_queue(expr->start, vs, info, location);
+}
 
 int evaluate(const char *text, const struct varspace *vs, const struct lineinfo *info, int location) {
-    char error = 0;
-    int result = 0;
-    struct token *t = tokenize(text, info, &error);
-    if (t==NULL || error) goto result; // an error message will have already been printed
-    struct token_stack_node *n = execution_order(t, info);
-    if (n==NULL) goto free_queue;
-    result = eval_rpn_queue(n, vs, info, location);
-
-    free_tokens(t);
-free_queue:
-    free_stack_from_begin(n);
-result:
-    return result;
+    struct parsed_expr *p = parse_expr(text, info);
+    if (p == NULL) {
+        return 0;
+    } else {
+        int result = eval_expr(p, vs, info, location);
+        free_parsed_expr(p);
+        return result;
+    }
 }
 

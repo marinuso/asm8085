@@ -10,18 +10,6 @@
 #include "parser_types.h"
 #include "expression.h"
 
-// Opcodes and assembler directives 
-
-enum opcode {
-    #define _OP(op) OP_##op,
-    #include "instructions.h"
-};
-
-enum directive {
-    #define _DIR(dir) DIR_##dir,
-    #include "instructions.h"
-};
-
 /* Get the opcode number for s. Returns -1 if not a valid operator. */
 enum opcode op_from_str(const char *s);
 
@@ -30,9 +18,9 @@ enum directive dir_from_str(const char *s);
 
 /* Read a file, parsing the lines as it goes. 
  *
- * Returns NULL if the file cannot be opened. 
+ * Returns NULL if the file cannot be opened or if there was a parse error. 
  */
-struct line *read_file(const char *filename, char *error);
+struct line *read_file(const char *filename);
 
 /* Free a line, recursively if needed (i.e. free all the following lines too). 
  * When freeing only one line, the next line is returned; otherwise NULL is returned.
@@ -43,17 +31,16 @@ struct line *free_line(struct line *line, char recursive);
 struct line *parse_line(const char *text, struct line *prev, const char *filename, char *error);
 
 /* Parse a register */
-enum reg_e parse_reg(const char *text, const struct lineinfo *info, char *error);
+enum reg_e parse_reg(const char *text);
 
 /* Parse a register pair */
-enum reg_pair parse_reg_pair(const char *text, const struct lineinfo *info, char *error);
+enum reg_pair parse_reg_pair(const char *text);
 
 /* Parse a string */
-char *parse_str(const char *text, const struct lineinfo *info, char *error);
+char *parse_str(const char *text);
 
-
-/* Print an error message given line info */
-void error_on_line(FILE *file, const struct lineinfo *info, const char *message, ...);
+/* Parse an argument */
+char parse_argmt(enum argmt_type types, struct argmt *argmt, const struct lineinfo *info);
 
 
 #endif

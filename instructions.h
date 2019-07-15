@@ -15,6 +15,7 @@
 #endif
 
 /* Directives */
+_DIR(include)
 _DIR(org)
 _DIR(db)
 _DIR(dw)

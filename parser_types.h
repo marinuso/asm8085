@@ -3,6 +3,18 @@
 #ifndef __PARSER_TYPES_H__
 #define __PARSER_TYPES_H__
 
+// Opcodes and assembler directives 
+enum opcode {
+    #define _OP(op) OP_##op,
+    #include "instructions.h"
+};
+
+enum directive {
+    #define _DIR(dir) DIR_##dir,
+    #include "instructions.h"
+};
+
+
 /* Represents an instruction */
 struct instr {
     // NONE means an empty line or a line with only a label on it
@@ -15,6 +27,12 @@ struct instr {
 enum reg_e    { R_INV = -1, RB, RC, RD, RE, RH, RL, RM, RA };
 enum reg_pair { RP_INV = -1, RPB, RPD, RPH, RPSP, RPPSW=RPSP};
 
+
+/* Argument type
+ * These can be OR'ed and given to parse_arg if multiple types are allowed,
+ * (but only (STRING | EXPRESSION) is allowed */
+enum argmt_type { REGISTER = 1, REGPAIR = 2, STRING = 4, EXPRESSION = 8 };
+
 /* Represents an argument */
 struct argmt {
     struct argmt *next_argmt;
@@ -22,12 +40,12 @@ struct argmt {
     char parsed;            /* True if the argument has already been parsed */
     char *raw_text; 
 
-    enum argmt_type { REGISTER, REGPAIR, STRING, EXPRESSION } type;
+    enum argmt_type type;
     union {
         enum reg_e reg;
         enum reg_pair reg_pair;
         char *string;
-        struct token_stack_node *expr; 
+        struct parsed_expr *expr; 
     } data; 
 };
     

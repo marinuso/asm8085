@@ -123,17 +123,16 @@ TEST(parse_line, struct line *line, if(line != NULL) free_line(line, FALSE), {
         
 #define TEST_REG(name) do { \
     enum reg_e v; \
-    if ((v=parse_reg(#name, &l, &error)) != R##name) FAIL("for register %s, parser returned %d", #name, v); \
+    if ((v=parse_reg(#name)) != R##name) FAIL("for register %s, parser returned %d", #name, v); \
 } while(0)
     
 #define TEST_RP(name) do { \
     enum reg_pair v; \
-    if ((v=parse_reg_pair(#name, &l, &error)) != RP##name) FAIL("for register pair %s, parser returned %d", #name, v); \
+    if ((v=parse_reg_pair(#name)) != RP##name) FAIL("for register pair %s, parser returned %d", #name, v); \
 } while(0)
 
 // Parse register names
-TEST(parse_register, MKLINEINFO, (void)0, {
-    char error;
+TEST(parse_register, (void)0, (void)0, {
     TEST_REG(A);
     TEST_REG(B);
     TEST_REG(C);
@@ -151,14 +150,13 @@ TEST(parse_register, MKLINEINFO, (void)0, {
 
 // Parse a string
 #define TEST_STRING_2(test, rslt) do { \
-    s = parse_str(test, &l, &error); \
+    s = parse_str(test); \
     if (strcmp(s, rslt)) FAIL("given string %s, expected \"%s\", but got \"%s\"", test, #rslt, s); \
     free(s); s = NULL; \
 } while(0)
 #define TEST_STRING(test) TEST_STRING_2(#test, test)
 
-TEST(parse_string, MKLINEINFO; char *s = NULL, if(s!=NULL) free(s), {
-    char error = 0;
+TEST(parse_string, char *s = NULL, if(s!=NULL) free(s), {
     TEST_STRING("hello");
     TEST_STRING("");
     TEST_STRING(" '' ");
@@ -196,7 +194,7 @@ TEST(parse_file,
     fputs("label2 mov    c,d       \n",f);
     fclose(f);
     
-    start = read_file(tempfile, &error);
+    start = read_file(tempfile);
     if (error) FAIL("error reading file");
     line = start;
     
@@ -207,6 +205,42 @@ TEST(parse_file,
     TEST_F_LINE(LINE_CONTENTS("label2", 2, OPCODE, OP_mov));
     
     if (line != NULL) FAIL("spurious extra line: '%s'", line->raw_text);
+})
+
+// Test argument parser
+#define TEST_PARSE_ARGMT_CHOICE(typein, typeout) do { \
+    if (! parse_argmt(typein, argmt, &l)) { \
+        FAIL("cannot parse argument '%s' as type %s.", argmt->raw_text, #typein); \
+    } else if (argmt->type != typeout) { \
+        FAIL("expected type %s (%d), but got %d.", #typeout, typeout, argmt->type); \
+    } \
+    argmt = argmt->next_argmt; \
+} while(0)
     
+#define TEST_PARSE_ARGMT(type) TEST_PARSE_ARGMT_CHOICE(type, type)
     
+TEST(parse_argmt, 
+    /* startup */
+    struct line *line = NULL;
+,   /* shutdown */
+    if(line != NULL) free_line(line, FALSE);
+,   /* test */ 
+{
+    struct lineinfo l;
+    l.filename = "test";
+    l.lineno = 1;
+    
+    char error = FALSE;
+    line = parse_line("  test  a,b,'string','another',5 + 6 * 7,8 * 9 + 10,psw", NULL, "test", &error);
+    if (error) FAIL("parsing line gave error");
+    if (line->n_argmts != 7) FAIL("not all arguments were parsed");
+    
+    struct argmt *argmt = line->argmts;
+    TEST_PARSE_ARGMT(REGISTER);
+    TEST_PARSE_ARGMT(REGPAIR);
+    TEST_PARSE_ARGMT(STRING);
+    TEST_PARSE_ARGMT_CHOICE(STRING|EXPRESSION, STRING);
+    TEST_PARSE_ARGMT(EXPRESSION);
+    TEST_PARSE_ARGMT_CHOICE(STRING|EXPRESSION, EXPRESSION);
+    TEST_PARSE_ARGMT(REGPAIR);   
 })

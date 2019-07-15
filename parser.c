@@ -6,6 +6,18 @@
 
 #define PARSE_ERROR "%s: line %d: parse error: "
 
+
+
+// Print an error message given line info
+static void error_on_line(FILE *file, const struct lineinfo *info, const char *message, ...) {
+    char buffer[1024];
+    va_list args;
+    va_start(args, message);
+    vsnprintf(buffer, 1024, message, args);
+    fprintf(stderr, PARSE_ERROR "%s\n", info->filename, info->lineno, buffer);
+    va_end(args);
+}
+
 /* Free all the memory associated with an argument */
 void free_argmt(struct argmt *argmt) {
     struct argmt *next;
@@ -43,7 +55,9 @@ struct line *free_line(struct line *line, char recursive) {
 
 /* Read a file, parsing the lines as it goes. 
  */
-struct line *read_file(const char *filename, char *error) {
+struct line *read_file(const char *filename) {
+    
+    char error = FALSE;
     
     struct line *begin = NULL, *prev = NULL, *cur = NULL;
     int idx;
@@ -52,7 +66,6 @@ struct line *read_file(const char *filename, char *error) {
     
     if (!file) {
         fprintf(stderr, "%s: cannot open file.\n", filename);
-        *error = TRUE;
         return NULL;
     }
     
@@ -68,7 +81,7 @@ struct line *read_file(const char *filename, char *error) {
         
         // Parse the line
         prev = cur; 
-        cur = parse_line(line_buf, prev, filename, error);
+        cur = parse_line(line_buf, prev, filename, &error);
         if (cur == NULL) {
             FATAL_ERROR("failed to allocate memory for line");
         } else if (prev == NULL) {
@@ -76,8 +89,10 @@ struct line *read_file(const char *filename, char *error) {
         }
     }
     
-    if (*error) {
+    if (error) {
         fprintf(stderr, "%s: there were errors parsing the file.\n", filename);
+        free_line(begin, TRUE);
+        return NULL;
     }
     
     return begin;
@@ -307,18 +322,8 @@ enum directive dir_from_str(const char *s) {
 }
 
 
-// Print an error message given line info
-void error_on_line(FILE *file, const struct lineinfo *info, const char *message, ...) {
-    char buffer[1024];
-    va_list args;
-    va_start(args, message);
-    vsnprintf(buffer, 1024, message, args);
-    fprintf(stderr, PARSE_ERROR "%s\n", info->filename, info->lineno, buffer);
-    va_end(args);
-}
-
 /* Parse a register */
-enum reg_e parse_reg(const char *t, const struct lineinfo *info, char *error) {
+enum reg_e parse_reg(const char *t) {
     if (!strcasecmp("a",t)) return RA; 
     if (!strcasecmp("b",t)) return RB;
     if (!strcasecmp("c",t)) return RC;
@@ -328,13 +333,11 @@ enum reg_e parse_reg(const char *t, const struct lineinfo *info, char *error) {
     if (!strcasecmp("l",t)) return RL;
     if (!strcasecmp("m",t)) return RM;
    
-    error_on_line(stderr, info, "invalid register: '%s'; expected a, b, c, d, e, f, h, l, or m.", t); 
-    *error = TRUE;
     return R_INV;
 }
 
 /* Parse a register pair */
-enum reg_pair parse_reg_pair(const char *t, const struct lineinfo *info, char *error) {
+enum reg_pair parse_reg_pair(const char *t) {
     enum reg_pair v = RP_INV;
     if (!strcasecmp("b",t))   return RPB;
     if (!strcasecmp("d",t))   return RPD;  
@@ -342,8 +345,6 @@ enum reg_pair parse_reg_pair(const char *t, const struct lineinfo *info, char *e
     if (!strcasecmp("sp",t))  return RPSP; 
     if (!strcasecmp("psw",t)) return RPSP; // SP and PSW use the same encoding
     
-    error_on_line(stderr, info, "invalid register pair: '%s'; expected b, d, h, sp or psw.", t);
-    *error = TRUE;
     return v;
 }
 
@@ -377,7 +378,7 @@ char parse_hex(const char *t, const char **out) {
 
     
 /* Parse a string */
-char *parse_str(const char *t, const struct lineinfo *info, char *error) {
+char *parse_str(const char *t) {
     char *s = calloc(strlen(t), sizeof(char));
     char *p;
     const char *o;
@@ -386,7 +387,6 @@ char *parse_str(const char *t, const struct lineinfo *info, char *error) {
     // Check delimiter
     delim = *t;
     if (delim != '"' && delim != '\'') {
-        error_on_line(stderr, info, "invalid string: not a string delimiter: '%c'.", delim);
         goto error;
     }
     t++;
@@ -414,7 +414,6 @@ char *parse_str(const char *t, const struct lineinfo *info, char *error) {
                         *p++=parse_octal(t, &o);
                         t=o-1;
                     } else {
-                        error_on_line(stderr, info, "invalid escape character: '%c' (%d).", *t, *t);
                         goto error;
                     }
             }
@@ -427,9 +426,66 @@ char *parse_str(const char *t, const struct lineinfo *info, char *error) {
     
 error:
     free(s);
-    *error = TRUE;
     return NULL;
 }
 
-
+/* Parse an argument */
+char parse_argmt(enum argmt_type types, struct argmt *argmt, const struct lineinfo *info) {
+    char *s = trim_string(argmt->raw_text);
+    char success = TRUE;
+    
+    switch ((int) types) {
+        case REGISTER:
+            argmt->data.reg = parse_reg(s);
+            if (argmt->data.reg == R_INV) {
+                error_on_line(stderr, info, "invalid register: %s; expected a, b, c, d, e, f, h, l, or m.", s); 
+                success = FALSE; 
+            } else {
+                argmt->type = REGISTER;
+            }
+            break;
+            
+        case REGPAIR:
+            argmt->data.reg_pair = parse_reg_pair(s);
+            if (argmt->data.reg_pair == RP_INV) {
+                error_on_line(stderr, info, "invalid register pair: %s; expected b, d, h, sp or psw.", s);
+                success = FALSE;
+            } else {
+                argmt->type = REGPAIR;
+            }
+            break;
+        
+        case STRING:
+        case (STRING | EXPRESSION):
+            argmt->data.string = parse_str(s);
+            if (argmt->data.string != NULL) {
+                argmt->type = STRING;
+                break;
+            } else {
+                if (!(types & EXPRESSION)) {
+                    /* It's not allowed to also be an expression, so this is definitely an error */
+                    error_on_line(stderr, info, "invalid string: %s", s);
+                    success = FALSE;
+                    break;
+                }
+                /* Otherwise, fall through into EXPRESSION, as that's also a possibility */
+            }  
+        
+        case EXPRESSION:
+            argmt->data.expr = parse_expr(s, info); // This prints its own error messages if needed
+            if (argmt->data.expr != NULL) {
+                argmt->type = EXPRESSION;
+            } else {
+                success = FALSE;
+            }
+            break;
+            
+        default:
+            FATAL_ERROR("invalid argument type code: %d (this is a bug)", types);
+    }
+    
+    free(s);
+    argmt->parsed = success;
+    return success;
+}
 
