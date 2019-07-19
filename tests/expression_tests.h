@@ -241,3 +241,39 @@ EX_TEST(evaluation_order, {
     
     SUCCEED;
 })
+
+// Test making a deep copy of a parsed expression
+#define TEST_COPY_EX 1 + (2 * 3) + 4 - 5 * 6 + ~7 * (8 + (9 - 10))
+#define VAL(x) (x)
+#define STR2(x) #x
+#define STR(x) (STR2(x))
+
+EX_TEST(copy_parsed_expr, {
+    int rslt;
+    
+    // Parse the expression
+    struct parsed_expr *orig = parse_expr(STR(TEST_COPY_EX), &info);
+    if (!orig) FAIL("parse_expr returned NULL");
+
+    rslt = eval_expr(orig, vs, &info, LOC);
+    if (rslt != VAL(TEST_COPY_EX)) {
+        FAILC("evaluating original returned %d instead of %d",
+                free_parsed_expr(orig), rslt, VAL(TEST_COPY_EX));
+    }
+
+    // Make a deep copy of the parsed expression
+    struct parsed_expr *copy = copy_parsed_expr(orig);
+    if (!copy) FAIL("copy_parsed_expr returned NULL");
+    
+    // Free the original (this should leave the copy intact)
+    free_parsed_expr(orig);
+    
+    // Test that the copy still returns the right value
+    rslt = eval_expr(copy, vs, &info, LOC);
+    if (rslt != VAL(TEST_COPY_EX)) {
+        FAILC("evaluating copy returned %d instead of %d",
+              free_parsed_expr(copy), rslt, VAL(TEST_COPY_EX));
+    }              
+ 
+    free_parsed_expr(copy); 
+})

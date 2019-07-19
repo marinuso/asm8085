@@ -618,3 +618,70 @@ int evaluate(const char *text, const struct varspace *vs, const struct lineinfo 
     }
 }
 
+// deep copy a token. next_token is set to NULL.
+struct token *copy_token(const struct token *t) {
+    if (t == NULL) return NULL;
+    
+    struct token *copy = malloc(sizeof(struct token));
+    if (copy == NULL) FATAL_ERROR("failed to allocate memory for copy of token");
+    
+    copy->next_token = NULL;
+    copy->text = copy_string(t->text);
+    copy->type = t->type;
+    copy->value = t->value;
+    return copy;
+}
+
+// deep copy a parsed expression
+struct parsed_expr *copy_parsed_expr(const struct parsed_expr *expr) {
+    if (expr == NULL) return NULL;
+    
+    struct parsed_expr *copy;
+  
+    const struct token_stack_node *orig_node_ptr;
+    struct token_stack_node *copy_node_ptr = NULL, *copy_node; 
+    struct token *copy_tok;
+    
+    copy = calloc(1, sizeof(struct parsed_expr));
+    if (copy == NULL) FATAL_ERROR("failed to allocate memory for copy of parsed_expr");
+    
+    copy->start = NULL;
+    copy->token_list = NULL; 
+    
+    for (orig_node_ptr = expr->start; orig_node_ptr != NULL; orig_node_ptr = orig_node_ptr->next) {
+        
+        // allocate space for the copy of the token list node
+        copy_node = calloc(1, sizeof(struct token_stack_node));
+        if (copy_node == NULL) FATAL_ERROR("failed to allocate memory for copy of token_list_node");
+        
+        // copy the token involved
+        copy_tok = copy_token(orig_node_ptr->token);
+        copy_node->token = copy_tok;
+        
+        // add token to copy's token list (so it can be freed)
+        copy_tok->next_token = copy->token_list;
+        copy->token_list = copy_tok;
+        
+        // we don't know what the next token is yet
+        copy_node->next = NULL;
+        
+        // set previous token
+        if (copy->start == NULL) {
+            // it is the first one
+            copy_node->prev = NULL;
+            copy->start = copy_node;
+        } else {
+            // chain it to the next one
+            copy_node->prev = copy_node_ptr;
+            copy_node->prev->next = copy_node;
+        }
+        
+        // this token is now the new pointer
+        copy_node_ptr = copy_node;
+    }
+    
+    return copy;
+}
+
+
+

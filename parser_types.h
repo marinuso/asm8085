@@ -71,4 +71,14 @@ struct line {
     int n_argmts;
 };
 
+// Deep copy of an argument (setting next to NULL)
+struct argmt *copy_argmt(const struct argmt *argmt);
+
+// Deep copy of an argument list
+struct argmt *copy_argmt_list(const struct argmt *start);
+
+// Deep copy of line (setting next to NULL)
+struct line *copy_line(const struct line *line);
+
+
 #endif

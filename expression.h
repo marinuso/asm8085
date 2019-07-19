@@ -45,8 +45,14 @@ struct token {
 // parsed expression 
 struct parsed_expr {
     struct token_stack_node *start;
-    struct token *token_list; // so we can free the tokens afterwards
+    struct token *token_list; // so we can free the tokens afterwards (not guaranteed to be there)
 };
+
+// deep copy a token. next_token is set to NULL.
+struct token *copy_token(const struct token *);
+
+// deep copy a parsed expression
+struct parsed_expr *copy_parsed_expr(const struct parsed_expr *);
 
 // free parsed expression
 void free_parsed_expr(struct parsed_expr *);

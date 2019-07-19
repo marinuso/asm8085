@@ -338,14 +338,13 @@ enum reg_e parse_reg(const char *t) {
 
 /* Parse a register pair */
 enum reg_pair parse_reg_pair(const char *t) {
-    enum reg_pair v = RP_INV;
     if (!strcasecmp("b",t))   return RPB;
     if (!strcasecmp("d",t))   return RPD;  
     if (!strcasecmp("h",t))   return RPH;  
     if (!strcasecmp("sp",t))  return RPSP; 
     if (!strcasecmp("psw",t)) return RPSP; // SP and PSW use the same encoding
     
-    return v;
+    return RP_INV;
 }
 
 

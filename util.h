@@ -18,6 +18,19 @@
         exit(255); \
     } while(0)
 
+
+// For string replacement
+struct replacement {
+    char *old;
+    char *new;
+};
+
+// Replace substrings in string, except within "..." or '...'
+char *string_replace(const char *str, const struct replacement *rpls, int n_replacements);
+
+// Join two strings
+char *join_strings(const char *, const char *);
+
 // Strip a string of leading and trailing whitespace
 char *trim_string(const char *);
 

@@ -21,8 +21,10 @@ _DIR(db)
 _DIR(dw)
 _DIR(ds)
 _DIR(equ)
-//_DIR(macro)
-//_DIR(end)
+_DIR(macro)
+_DIR(endm)
+_DIR(if)
+_DIR(endif)
 
 /* Opcodes */
 _OP(mov)

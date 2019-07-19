@@ -2,6 +2,112 @@
 
 #include "util.h"
 
+#define RPL_BLK_SZ 1024
+
+// Replace substrings in string, except within "..." or '...'
+char *string_replace(const char *str, const struct replacement *rpls, int n_replacements) {
+    char *out = malloc(sizeof(char) * RPL_BLK_SZ);
+    int *olens = malloc(sizeof(int) * n_replacements);
+    int *nlens = malloc(sizeof(int) * n_replacements);
+    int i, sidx, size;
+    char replaced = FALSE;
+    char strdelim = '\0';
+    char escaped = FALSE;
+    
+    if (out == NULL || olens == NULL || nlens == NULL) {
+        if(out) free(out);
+        if(olens) free(olens);
+        if(nlens) free(nlens);
+        FATAL_ERROR("failed to allocate memory during string replacement");
+    }
+    
+    // Precalculate lengths of search and replacement strings
+    for (i=0; i<n_replacements; i++) {
+        olens[i] = strlen(rpls[i].old);
+        nlens[i] = strlen(rpls[i].new);
+    }
+    
+    sidx = 0;
+    size = RPL_BLK_SZ;
+    while (*str) {
+        replaced = FALSE;
+        
+        // Do not apply replacements within string literals
+        if (escaped) {
+            // Next character is not escaped, but this one is copied verbatim
+            escaped = FALSE;
+        } else if (!strdelim && (*str=='"' || *str=='\'')) {
+            // Start of string
+            strdelim = *str;
+        } else if (strdelim && *str==strdelim) {
+            // End of string
+            strdelim = '\0';
+        } else if (strdelim && *str=='\\') {
+            // Next character is escaped
+            escaped = TRUE;
+        } else if (!strdelim) {
+            // Not in a string, so attempt to apply replacement
+            
+            for (i=0; i<n_replacements; i++) {
+                // String starts with replacement?
+                if (! strncmp(rpls[i].old, str, olens[i])) {
+                    // Allocate more memory if necessary
+                    if (sidx + nlens[i] >= size) {
+                        size += RPL_BLK_SZ;
+                        out = realloc(out, sizeof(char) * size);
+                        if (out == NULL) FATAL_ERROR("failed to allocate memory during string replacement");
+                    }
+                    // Write replacement
+                    memcpy(out+sidx, rpls[i].new, nlens[i]);
+                    sidx += nlens[i];
+                    str += olens[i];
+                    replaced = TRUE;
+                    break;
+                }
+            }
+        }
+        
+        if (!replaced) {
+            // Write current character unchanged
+            if (sidx >= size) {
+                // Allocate more memory if necessary
+                size += RPL_BLK_SZ;
+                out = realloc(out, sizeof(char) * size);
+            }
+            out[sidx++] = *str;
+            str++;
+        }
+    }
+    
+    // zero-terminate the string
+    out[sidx++] = '\0';
+    
+    // free any unused memory 
+    out = realloc(out, sizeof(char) * sidx);
+    if (out == NULL) FATAL_ERROR("failed to allocate memory during string replacement");
+    
+    free(olens);
+    free(nlens);
+    return out; 
+}
+
+
+// Join two strings
+char *join_strings(const char *foo, const char *bar) {
+    size_t foosize = strlen(foo);
+    size_t barsize = strlen(bar);
+    size_t bufsize = foosize + barsize + 1;
+    
+    char *str = malloc(sizeof(char)*bufsize);
+    if (str == NULL) {
+        FATAL_ERROR("failed to allocate memory to join two strings");
+    }
+    
+    memcpy(str, foo, foosize);
+    memcpy(str + foosize, bar, barsize);
+    str[bufsize-1] = '\0';
+    return str;
+}
 
 // Strip a string of leading and trailing whitespace
 char *trim_string(const char *string) {

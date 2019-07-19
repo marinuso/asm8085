@@ -3,6 +3,7 @@
 // This file contains tests for the functions in parser.c
 
 #include "../parser.h"
+#include "../expression.h"
 
 // Macro: parse a line and do some sanity checks, then run code, and free line afterwards
 #define TEST_LINE(str, code) do { \
@@ -243,4 +244,53 @@ TEST(parse_argmt,
     TEST_PARSE_ARGMT(EXPRESSION);
     TEST_PARSE_ARGMT_CHOICE(STRING|EXPRESSION, EXPRESSION);
     TEST_PARSE_ARGMT(REGPAIR);   
+})
+
+
+// Test if we can copy a line
+TEST(copy_line, 
+    /* startup */
+    struct line *line = NULL;
+    struct line *copy;
+,   /* shutdown */
+    if (line != NULL) free_line(line, FALSE);
+,   /* test */
+{
+    struct lineinfo l;
+    l.filename = "test";
+    l.lineno = 1;
+    
+    char error = FALSE;
+    line = parse_line("label test a,psw,5+6", NULL, "test", &error);
+    if (error) FAIL("parsing line gave error");
+    
+    // Check that everything is there
+    LINE_CONTENTS("label", 3, MACRO, "test");
+    
+    
+    // Parse and test the arguments
+    struct argmt *argmt = line->argmts;
+    TEST_PARSE_ARGMT(REGISTER);
+    TEST_PARSE_ARGMT(REGPAIR);
+    TEST_PARSE_ARGMT(EXPRESSION);
+    
+    argmt = line->argmts;
+    if (argmt->data.reg != RA) FAIL("arg 1 isn't register A"); argmt=argmt->next_argmt;
+    if (argmt->data.reg_pair != RPPSW) FAIL("arg 2 isn't register pair PSW"); argmt=argmt->next_argmt;
+    if (eval_expr(argmt->data.expr, NULL, &l, 0) != 5+6) FAIL("arg 3 doesn't evaluate to 5+6");
+    
+    // make a copy of the line and free the old one
+    copy = copy_line(line);
+    free_line(line, FALSE);
+    line = copy;
+    
+    // see if everything is still there
+    LINE_CONTENTS("label", 3, MACRO, "test");
+    
+    // Test the arguments
+    argmt = line->argmts;
+    if (argmt->data.reg != RA) FAIL("arg 1 isn't register A"); argmt=argmt->next_argmt;
+    if (argmt->data.reg_pair != RPPSW) FAIL("arg 2 isn't register pair PSW"); argmt=argmt->next_argmt;
+    if (eval_expr(argmt->data.expr, NULL, &l, 0) != 5+6) FAIL("arg 3 doesn't evaluate to 5+6");
+    
 })
