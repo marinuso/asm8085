@@ -13,7 +13,6 @@
 #define MACRO_ARG_MAX 16
 #define EXPANSION_TEMPLATE "_%s_%d_"
 #define EXPANSION_ID_MAX_LEN 128
-#define MAX_EXPAND_LENGTH 2048
 
 // Macro
 struct macro {
@@ -36,7 +35,7 @@ void free_macro(struct macro *);
 void free_maclist(struct maclist *);
 
 // Expand a macro, given the invocation on the given line
-struct line *expand_macro(struct line *invocation, struct maclist *macros);
+struct line *expand_macro(struct line *invocation, struct maclist *macros, struct line **last);
 
 // Read a macro definition, removing the definition from the given line list
 struct macro *define_macro(const struct line *definition, const struct line **endm);

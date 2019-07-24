@@ -39,12 +39,12 @@ char *string_replace(const char *str, const struct replacement *rpls, int n_repl
         } else if (!strdelim && (*str=='"' || *str=='\'')) {
             // Start of string
             strdelim = *str;
-        } else if (strdelim && *str==strdelim) {
-            // End of string
-            strdelim = '\0';
         } else if (strdelim && *str=='\\') {
             // Next character is escaped
             escaped = TRUE;
+        } else if (strdelim && *str==strdelim) {
+            // End of string
+            strdelim = '\0';
         } else if (!strdelim) {
             // Not in a string, so attempt to apply replacement
             

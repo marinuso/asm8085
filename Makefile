@@ -1,6 +1,6 @@
 CC = gcc
 
-CFLAGS = -Wall
+CFLAGS = -Wall -Wextra
 
 CFILES = $(shell ls *.c)
 OBJ = $(CFILES:.c=.o)

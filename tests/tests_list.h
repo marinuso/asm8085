@@ -6,3 +6,4 @@
 #include "varspace_tests.h"
 #include "expression_tests.h"
 #include "parser_tests.h"
+#include "macro_tests.h"

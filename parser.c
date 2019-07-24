@@ -14,7 +14,7 @@ static void error_on_line(FILE *file, const struct lineinfo *info, const char *m
     va_list args;
     va_start(args, message);
     vsnprintf(buffer, 1024, message, args);
-    fprintf(stderr, PARSE_ERROR "%s\n", info->filename, info->lineno, buffer);
+    fprintf(file, PARSE_ERROR "%s\n", info->filename, info->lineno, buffer);
     va_end(args);
 }
 
@@ -295,6 +295,8 @@ struct line *parse_line(const char *text, struct line *prev, const char *filenam
     parse_ptr = parse_label(l);
     parse_ptr = parse_instruction(l, parse_ptr);
     parse_arguments(l, parse_ptr, error);
+    
+    //fprintf(stderr, "[%s],[%d],[%d],[%d]<-%s\n", l->label, l->instr.type, l->instr.instr, l->n_argmts, l->raw_text);
     
     // If there was a comment, restore it.
     if (comment) *comment = ';';

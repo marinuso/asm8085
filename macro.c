@@ -66,7 +66,7 @@ int replacement_compare(const void *a, const void *b) {
 
 
 // Expand a macro, given the invocation on the given line
-struct line *expand_macro(struct line *invocation, struct maclist *macros) {
+struct line *expand_macro(struct line *invocation, struct maclist *macros, struct line **last) {
     struct replacement replacements[MACRO_ARG_MAX + 1];
     char expansion_id[EXPANSION_ID_MAX_LEN] = {'\0'};
     char *tmp;
@@ -99,7 +99,7 @@ struct line *expand_macro(struct line *invocation, struct maclist *macros) {
     }
     
     // Set up expansion ID
-    replacements[0].old = "#";
+    replacements[0].old = "@";
     replacements[0].new = expansion_id;
     if (snprintf(expansion_id, EXPANSION_ID_MAX_LEN, EXPANSION_TEMPLATE, macro->name, ++macro->expansions) 
             >= EXPANSION_ID_MAX_LEN) {
@@ -156,8 +156,10 @@ struct line *expand_macro(struct line *invocation, struct maclist *macros) {
     if (error) {
         // Free the created lines and return NULL
         free_line(start_line, TRUE);
+        *last = NULL;
         return NULL;
     } else {
+        *last = line_cur;
         return start_line;
     }
 }
@@ -221,7 +223,7 @@ struct macro *define_macro(const struct line *definition, const struct line **en
         
     return macro;
 }
-
+  
 // Find a macro defintion
 struct macro *find_macro(const char *name, const struct maclist *macros) {
     while (macros != NULL) {
@@ -243,7 +245,7 @@ struct maclist *add_macro(struct macro *macro, struct maclist *macros) {
 // Find the location of the endm, given macro starting line
 const struct line *find_endm(const struct line *start, char *error) {
     *error = FALSE;
-    const struct line *line = start; 
+    const struct line *line = start->next_line; 
     int endms = 1;
     while (line != NULL && endms>0) {
         // Check for nested macros (not allowed)
@@ -252,11 +254,13 @@ const struct line *find_endm(const struct line *start, char *error) {
             *error = TRUE;
             // but do take it into account when searching for the endm (to give better error messages)
             endms++;
-        } else if (line->instr.type != DIRECTIVE && line->instr.instr != DIR_endm) {
+        } else if (line->instr.type == DIRECTIVE && line->instr.instr == DIR_endm) {
             if (--endms) {
                 error_on_line(line, "note: ENDM for invalid nested macro is here");
             }
-        }            
+            if (endms==0) break;
+        }
+        line=line->next_line;
     }
     if (line == NULL) {
         // we reached the end without finding the endm line
