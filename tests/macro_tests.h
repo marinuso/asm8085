@@ -88,13 +88,13 @@ TEST(macros,
     
     LINE("testmacro macro one,two,three");
     mac_lines = l;
-    LINE("!one !two !three");
-    LINE("@label !two !three");
-    LINE(" mov a,b");
-    LINE(" jz @label");
-    LINE(" endm");
+    LINE("!one      !two  !three");
+    LINE("@label    !two  !three");
+    LINE("          mov   a,b");
+    LINE("          jz    @label");
+    LINE("          endm");
     endm_def = l;
-    LINE("not part of,macro");
+    LINE("not       part  of,macro");
     
     /* can we define the macro? */
     struct macro *m = define_macro(mac_lines, &endm_out);
