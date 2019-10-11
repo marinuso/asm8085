@@ -8,7 +8,12 @@
 #include "expression.h"
 #include "parser.h"
 
-#define INCLUDE_MAX_DEPTH   1024
+#define MAX_INCLUDES 1024
+#define RES_STACK_SIZE 8192
+
+
+// Do some sanity checks 
+char sanity_checks(const struct line *line);
 
 
 #endif

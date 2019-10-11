@@ -50,9 +50,10 @@ struct argmt {
 };
     
  
-/* Info for error message */
+/* Info for error message and last label*/
 struct lineinfo {
     char *filename;
+    char *lastlabel; 
     int lineno;
 };
     
@@ -69,6 +70,10 @@ struct line {
     struct instr instr;
     struct argmt *argmts; 
     int n_argmts;
+    
+    int visited;
+    int n_bytes;
+    char *bytes;
 };
 
 // Deep copy of an argument (setting next to NULL)

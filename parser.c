@@ -35,6 +35,7 @@ void free_line_mem(struct line *line) {
     if(line->raw_text) free(line->raw_text);
     if(line->label) free(line->label);
     if(line->info.filename) free(line->info.filename);
+    if(line->info.lastlabel) free(line->info.lastlabel);
     if(line->instr.text) free(line->instr.text);
     if(line->argmts) free_argmt(line->argmts);
 }
@@ -121,6 +122,7 @@ char *parse_label(struct line *l) {
         }
         
         l->label = label;
+        l->info.lastlabel = copy_string(label);
     }
     
     // Skip ahead to next nonwhitespace character or end of line
@@ -282,6 +284,7 @@ struct line *parse_line(const char *text, struct line *prev, const char *filenam
     if (prev) {
         prev->next_line = l;
         l->info.lineno = prev->info.lineno + 1;
+        l->info.lastlabel = copy_string(prev->info.lastlabel);
     } else {
         l->info.lineno = 1;
     }

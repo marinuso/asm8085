@@ -67,6 +67,7 @@ struct line *copy_line(const struct line *line) {
     copy->raw_text = copy_string(line->raw_text);
     copy->info.lineno = line->info.lineno;
     copy->info.filename = copy_string(line->info.filename);
+    copy->info.lastlabel = copy_string(line->info.lastlabel);
     copy->next_line = NULL;
     
     copy->label = line->label == NULL ? NULL : copy_string(line->label);

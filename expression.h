@@ -46,6 +46,7 @@ struct token {
 struct parsed_expr {
     struct token_stack_node *start;
     struct token *token_list; // so we can free the tokens afterwards (not guaranteed to be there)
+    char *basename; // basename to use for dot names in expression 
 };
 
 // deep copy a token. next_token is set to NULL.

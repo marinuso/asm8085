@@ -50,4 +50,7 @@ char *copy_string_part(const char *begin, const char *end);
 // Make a copy of part of a string in memory until predicate has given boolean value or end is reached (and zero-terminate it)
 char *copy_string_pred(const char *str, int (*)(int), int);
 
+// Rotate left
+unsigned char rol(unsigned char byte, char n);
+
 #endif

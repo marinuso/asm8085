@@ -120,6 +120,9 @@ char *trim_string(const char *string) {
 
 // Make a copy of a string in memory.
 char *copy_string(const char *string) {
+    // if NULL, return NULL
+    if (string == NULL) return NULL;
+    
     size_t bufsize = strlen(string) + 1;
     char *new_string = malloc(sizeof(char) * bufsize);
     
@@ -151,7 +154,6 @@ const char *scan_ahead(const char *string, int (*predicate)(int), int value) {
 }
 
 // Make a copy of part of a string in memory until predicate has value or end is reached (and zero-terminate it)
-
 char *copy_string_pred(const char *str, int (*predicate)(int), int value) {
     return copy_string_part(str, scan_ahead(str, predicate, value));
 }
@@ -161,4 +163,9 @@ char has_case_insensitive_prefix(const char *string, const char *prefix) {
     return !strncasecmp(string, prefix, strlen(prefix));
 }
 
+// Rotate byte to the left by N
+unsigned char rol(unsigned char byte, char n) {
+    return (byte << n) | (byte >> (8-n));
+    
+}
 

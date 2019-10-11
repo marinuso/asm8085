@@ -577,6 +577,7 @@ void free_parsed_expr(struct parsed_expr *expr) {
         free_stack_from_begin(expr->start);
         // free the tokens
         free_tokens(expr->token_list);
+        free(expr->basename);
         free(expr);
     }
 }
@@ -598,13 +599,17 @@ struct parsed_expr *parse_expr(const char *text, const struct lineinfo *info) {
         if (p == NULL) FATAL_ERROR("failed to allocate space for parsed_expr");
         p->token_list = t;
         p->start = n;
+        
+        // Remember which label "." should refer to 
+        p->basename = copy_string(info->lastlabel);
         return p;
     }
 }
 
 // evaluate parsed expression
 int eval_expr(const struct parsed_expr *expr, const struct varspace *vs, const struct lineinfo *info, int location) {
-    return eval_rpn_queue(expr->start, vs, info, location);
+    const struct varspace v = temp_rename(vs, expr->basename);
+    return eval_rpn_queue(expr->start, &v, info, location);
 }
 
 int evaluate(const char *text, const struct varspace *vs, const struct lineinfo *info, int location) {
@@ -647,6 +652,12 @@ struct parsed_expr *copy_parsed_expr(const struct parsed_expr *expr) {
     
     copy->start = NULL;
     copy->token_list = NULL; 
+    
+    if (expr->basename == NULL) {
+        copy->basename = NULL;
+    } else {
+        copy->basename = copy_string(expr->basename);
+    }
     
     for (orig_node_ptr = expr->start; orig_node_ptr != NULL; orig_node_ptr = orig_node_ptr->next) {
         

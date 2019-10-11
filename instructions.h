@@ -24,6 +24,8 @@ _DIR(equ)
 _DIR(macro)
 _DIR(endm)
 _DIR(if)
+_DIR(ifdef)
+_DIR(ifndef)
 _DIR(endif)
 
 /* Opcodes */

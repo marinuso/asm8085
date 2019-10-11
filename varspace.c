@@ -29,6 +29,7 @@ char *add_base(const struct varspace *vs, const char *name) {
     return newname;
 }
 
+
 // Allocate space for a variable
 struct variable *alloc_var(const struct varspace *vs, const char *name) {
     struct variable *v = calloc(1, sizeof(struct variable));
@@ -57,12 +58,15 @@ struct variable *find_var(const struct varspace *vs, const char *name) {
 struct varspace *alloc_varspace() {
     struct varspace *vs = calloc(1, sizeof(struct varspace));
     if (vs == NULL) FATAL_ERROR("failed to allocate space for list of variables");
-    
+    vs->isref = FALSE;
     return vs;
 }
 
 // Free a variable space and all its associated variables.
 void free_varspace(struct varspace *vs) {
+    // Make sure we're not freeing a temporary reference
+    if (vs->isref) FATAL_ERROR("tried to free temporary reference to varspace");
+
     // Free all the variables first
     struct variable *var, *next = vs->variables;
     while (next != NULL) {
@@ -126,3 +130,20 @@ void set_base(struct varspace *vs, const char *base) {
     if (vs->cur_base) free(vs->cur_base);
     vs->cur_base = copy_string(base);
 }
+
+// Make a temporary copy with a different name
+// Note: name is not copied!
+struct varspace temp_rename(const struct varspace *vs, char *name) {
+    struct varspace v;
+    v.isref = TRUE;
+    v.cur_base = name;
+    if (vs != NULL) {
+        v.variables = vs->variables;
+    } else {
+        v.variables = NULL;
+    }
+    return v;
+}
+
+
+

@@ -229,6 +229,7 @@ TEST(parse_argmt,
 {
     struct lineinfo l;
     l.filename = "test";
+    l.lastlabel = NULL;
     l.lineno = 1;
     
     char error = FALSE;
@@ -258,6 +259,7 @@ TEST(copy_line,
 {
     struct lineinfo l;
     l.filename = "test";
+    l.lastlabel = NULL;
     l.lineno = 1;
     
     char error = FALSE;
@@ -266,7 +268,6 @@ TEST(copy_line,
     
     // Check that everything is there
     LINE_CONTENTS("label", 3, MACRO, "test");
-    
     
     // Parse and test the arguments
     struct argmt *argmt = line->argmts;

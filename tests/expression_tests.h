@@ -8,6 +8,7 @@
     struct varspace *vs = alloc_varspace(); \
     struct lineinfo info; \
     info.filename = "test"; \
+    info.lastlabel = NULL; \
     info.lineno = 1; 
     
 #define EX_FREE \
