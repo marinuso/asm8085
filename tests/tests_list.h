@@ -1,4 +1,4 @@
-/* asm8085 (C) 2019 Marinus Oosters */
+/* asm8085 (C) 2019-20 Marinus Oosters */
 
 // This file includes all tests
 
@@ -7,3 +7,5 @@
 #include "expression_tests.h"
 #include "parser_tests.h"
 #include "macro_tests.h"
+#include "dirstack_tests.h"
+

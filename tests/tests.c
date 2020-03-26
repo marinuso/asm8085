@@ -1,9 +1,10 @@
-/* asm8085 (C) 2019 Marinus Oosters */
+/* asm8085 (C) 2019-20 Marinus Oosters */
 // Test harness
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
 
 // File containing all the tests 
 #define TESTFILE "tests_list.h"
