@@ -8,10 +8,11 @@
 
 #include "util.h"
 #include <stdlib.h>
+#include <stdint.h>
 
 struct variable {
     char *name;
-    int value;
+    intptr_t value;
 
     struct variable *next, *prev;
 };
@@ -32,10 +33,10 @@ void free_varspace(struct varspace *);
 
 // Get the value of a variable. Returns false if it doesn't exist. 
 // The base is added if the name starts with a period.
-char get_var(const struct varspace *, const char *name, int *value);
+char get_var(const struct varspace *, const char *name, intptr_t *value);
 
 // Set the value of a variable. The base is added if the name starts with a period.
-void set_var(struct varspace *, const char *name, int value);
+void set_var(struct varspace *, const char *name, intptr_t value);
 
 // Delete a variable. Returns false if it didn't exist.
 char del_var(struct varspace *, const char *name);

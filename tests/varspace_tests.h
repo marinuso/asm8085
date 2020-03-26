@@ -19,7 +19,7 @@ VS_TEST(set_get_var, {
     set_var(vs, "baz", 44);
     
     // see if we can retrieve them
-    int val;
+    intptr_t val;
 
     TEST_VAR(foo, 42);
     TEST_VAR(bar, 43);
@@ -35,7 +35,7 @@ VS_TEST(set_get_var, {
     set_var(vs, "foo", VAL); \
     if (!get_var(vs, "foo", &val) || val!=VAL) FAIL("Variable not set to " #VAL);
 VS_TEST(redefine_var, {
-    int val;
+    intptr_t val;
     TEST_SET(42);
     TEST_SET(43);
     TEST_SET(44);
@@ -45,7 +45,7 @@ VS_TEST(redefine_var, {
 
 // Test if a variable can be removed
 VS_TEST(del_var, {
-    int val;
+    intptr_t val;
     set_var(vs, "foo", 42);
     if (!get_var(vs, "foo", &val) || val!=42) FAIL("Variable not set.");
     if (!del_var(vs, "foo")) FAIL("del_var couldn't find the variable.");
@@ -57,7 +57,7 @@ VS_TEST(del_var, {
 #define TEST_GET(VAR,VAL,MSG) if (!get_var(vs, VAR, &val) || val!=VAL) FAIL(MSG);
 #define TEST_SET(VAR,VAL,MSG) set_var(vs, VAR, VAL); TEST_GET(VAR,VAL,MSG)
 VS_TEST(basenames, {
-    int val;
+    intptr_t val;
     
     // Set the base
     set_base(vs, "foo");
