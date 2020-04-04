@@ -7,7 +7,7 @@ OBJ = $(CFILES:.c=.o)
 TESTS = $(shell ls tests/*.h)
 
 test: tests/tests
-	./tests/tests
+	cd tests && ./tests
 
 tests/tests: tests/tests.c $(OBJ) $(TESTS)
 	$(CC) $(CFLAGS) -I./tests -o tests/tests tests/tests.c $(OBJ)
