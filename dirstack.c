@@ -37,11 +37,17 @@ int pushd(const char *dir) {
     }
     
     // Get current directory name
-    itm->name = get_current_dir_name();
+    itm->name = malloc(PATH_MAX);
     if (itm->name == NULL) {
+        FATAL_ERROR("failed to allocate memory for path name");
+    }
+    
+    if (getcwd(itm->name, PATH_MAX) == NULL) {
+        free(itm->name);
         free(itm);
         return -1;
     }
+    
     
     // Try to change to given directory
     int rv = chdir(dir);

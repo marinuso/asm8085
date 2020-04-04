@@ -71,9 +71,13 @@ struct line {
     struct argmt *argmts; 
     int n_argmts;
     
+    /* Used during assembly */
     int visited;
     int n_bytes;
     char *bytes;
+    int needs_process;
+    int location;
+    
 };
 
 // Deep copy of an argument (setting next to NULL)

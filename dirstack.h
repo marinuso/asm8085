@@ -5,6 +5,7 @@
 
 #include "util.h"
 #include <unistd.h>
+#include <limits.h>
 
 // Push current directory and change working directory to given directory
 int pushd(const char *);

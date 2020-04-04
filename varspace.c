@@ -1,4 +1,4 @@
-/* asm8085 (C) 2019 Marinus Oosters */
+/* asm8085 (C) 2019-20 Marinus Oosters */
 
 #include "varspace.h"
 
@@ -116,13 +116,18 @@ void set_var(struct varspace *vs, const char *name, intptr_t value) {
 char del_var(struct varspace *vs, const char *name) {
     struct variable *v = find_var(vs, name);
     if (v == NULL) return FALSE;
-    
+    del_var_ptr(v, vs);
+    return TRUE;
+}
+
+// Delete a variable, given a pointer to it
+void del_var_ptr(struct variable *v, struct varspace *vs) {
+
+    if (v == vs->variables) vs->variables = v->next;
     if (v->prev != NULL) v->prev->next = v->next;
     if (v->next != NULL) v->next->prev = v->prev;
-    if (v == vs->variables) vs->variables = NULL;
     
     free_var(v);
-    return TRUE;
 }
 
 // Set the current base name

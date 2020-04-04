@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <ctype.h>
+#include <stdint.h>
 
 #define FALSE 0
 #define TRUE (!FALSE)

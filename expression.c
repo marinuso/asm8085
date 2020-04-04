@@ -497,7 +497,7 @@ err_cleanup:
      
 // See if a parsed expression contains names not defined in vs.
 char contains_undefined_names(const struct parsed_expr *expr, const struct varspace *vs) {
-    int val;
+    intptr_t val;
     const struct token_stack_node *node;
     for (node = expr->start; node != NULL; node = node->next) {
         const struct token *t = node->token;
@@ -509,7 +509,7 @@ char contains_undefined_names(const struct parsed_expr *expr, const struct varsp
 
 
 int eval_rpn_queue(const struct token_stack_node *node, const struct varspace *vs, const struct lineinfo *info, int location) {
-    int stack[EVAL_STACK_SIZE], stackptr=0, val;
+    intptr_t stack[EVAL_STACK_SIZE], stackptr=0, val;
     
     for (; node != NULL; node = node->next) {
         const struct token *t = node->token;

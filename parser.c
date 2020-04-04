@@ -122,7 +122,8 @@ char *parse_label(struct line *l) {
         }
         
         l->label = label;
-        l->info.lastlabel = copy_string(label);
+        // If label starts with '.', it's not a top-level label
+        if (label[0] != '.') l->info.lastlabel = copy_string(label);
     }
     
     // Skip ahead to next nonwhitespace character or end of line

@@ -1,4 +1,4 @@
-/* asm8085 (C) 2019 Marinus Oosters 
+/* asm8085 (C) 2019-20 Marinus Oosters 
  *
  * Implementations of functions and operators for expressions */
 
@@ -7,11 +7,11 @@
 
 #include "util.h"
 
-int eval_keyword(int kwdnum, int input);
-int eval_operator(int opnum, int *inputs);
+intptr_t eval_keyword(int kwdnum, intptr_t input);
+intptr_t eval_operator(int opnum, intptr_t *inputs);
 
-#define _KWD(kwd) int evalkwd_##kwd (int);
-#define _OPR(op,name,prcd,argsn) int evalop_##name (int*);
+#define _KWD(kwd) intptr_t evalkwd_##kwd (intptr_t);
+#define _OPR(op,name,prcd,argsn) intptr_t evalop_##name (intptr_t *);
 #include "operators.h"
 
 #endif

@@ -1,4 +1,4 @@
-/* asm8085 (C) 2019 Marinus Oosters
+/* asm8085 (C) 2019-20 Marinus Oosters
  * 
  * varspace.h: keep track of labels and variables
  */
@@ -37,6 +37,9 @@ char get_var(const struct varspace *, const char *name, intptr_t *value);
 
 // Set the value of a variable. The base is added if the name starts with a period.
 void set_var(struct varspace *, const char *name, intptr_t value);
+
+// Delete a variable, given a pointer to it
+void del_var_ptr(struct variable *, struct varspace *);
 
 // Delete a variable. Returns false if it didn't exist.
 char del_var(struct varspace *, const char *name);
