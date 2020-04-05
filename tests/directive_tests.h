@@ -34,3 +34,15 @@ DIR_TEST(equ, {
     if (!get_var(state->unknowns, "eggs", &val)) FAIL("eggs not defined");
 })
 
+DIR_TEST(include, {
+    
+    intptr_t val;
+    lines = assemble(state, "test_inputs/includetest.asm");
+    if (lines == NULL) FAIL("processing failed");
+    
+    // Check that 'inc3' is 30.
+    if (!get_var(state->knowns, "inc3", &val)) FAIL("inc3 not defined");
+    if (val != 30) FAIL("inc3 not 30, but %d", (int)val);
+    
+})
+

@@ -171,7 +171,7 @@ int dir_include(struct asmstate *state) {
     }
     
     // See if we have the right arguments
-    if (cur_line->n_argmts != 1 || cur_line->argmts->type != STRING) {
+    if (cur_line->n_argmts != 1 || !parse_argmt(STRING, cur_line->argmts, &cur_line->info)) {
         error_on_line(cur_line, "'include' needs one string argument.");
         return FALSE;
     }
@@ -186,6 +186,7 @@ int dir_include(struct asmstate *state) {
         return FALSE;
     }
     
+    
     // find the last line of the file
     for (flastline = lines; flastline->next_line != NULL; flastline = flastline->next_line);
     
@@ -199,17 +200,18 @@ int dir_include(struct asmstate *state) {
         FATAL_ERROR("failed to allocate memory for post_include");
     
     int pre_len, post_len;
-    
+        
     char *copy_fname = copy_string(fname);
-    pre_len = snprintf(INCLUDE_PRE, MAX_PATHLINE_SIZE, dirname(copy_fname), fname);
+    pre_len = snprintf(pre_include, MAX_PATHLINE_SIZE, INCLUDE_PRE, dirname(copy_fname), fname);
     free(copy_fname);
-    post_len = snprintf(INCLUDE_POST, MAX_PATHLINE_SIZE, fname);
+    post_len = snprintf(post_include, MAX_PATHLINE_SIZE, INCLUDE_POST, fname);
     
     if (pre_len < 0 || post_len < 0) 
         FATAL_ERROR("failed to make pre-include or post-include line");
     if (pre_len >= MAX_PATHLINE_SIZE || post_len >= MAX_PATHLINE_SIZE)
         error_on_line(cur_line, "include: maximum path length exceeded");
     
+ 
     char error = 0;
     struct line *pre_line = parse_line(pre_include, cur_line, cur_line->info.filename, &error);
     if (error || pre_line == NULL) FATAL_ERROR("failed to construct pre_line");
@@ -603,7 +605,7 @@ struct line *assemble(struct asmstate *state, const char *filename) {
     if (pushd(dirname(fcopy)) == -1) {
         fprintf(stderr, "%s: cannot open directory: %s\n", filename, fcopy); 
         free(fcopy);
-        return NULL;
+        goto error;
     }
     free(fcopy);
     
@@ -613,12 +615,12 @@ struct line *assemble(struct asmstate *state, const char *filename) {
     free(fcopy);
     
     state->cur_line = lines;
-    if (lines == NULL) return NULL; // error
+    if (lines == NULL) goto error;
     
     /* Do sanity checks */
     if (sanity_checks(lines)) {
         error_in_file(lines, "assembly aborted.");
-        return NULL;
+        goto error;
     }
     
     while (state->cur_line != NULL) {
@@ -644,7 +646,7 @@ struct line *assemble(struct asmstate *state, const char *filename) {
             if (get_var(state->knowns, state->cur_line->label, &foo)
             ||  get_var(state->unknowns, state->cur_line->label, &foo)) {
                 error_on_line(state->cur_line, "label is already defined elsewhere: %s", state->cur_line->label);
-                return NULL;
+                goto error;
             }
             
             // If not, we know what the value is.
@@ -665,7 +667,7 @@ struct line *assemble(struct asmstate *state, const char *filename) {
 
                     #define _DIR(dir)\
                     case DIR_##dir:\
-                        if (!dir_##dir(state)) return NULL;\
+                        if (!dir_##dir(state)) goto error;\
                         break;
                         
                     #include "instructions.h"
@@ -678,7 +680,10 @@ struct line *assemble(struct asmstate *state, const char *filename) {
             // TODO: Implement the rest
             
             default:
-                FATAL_ERROR("invalid instruction type");
+                FATAL_ERROR("invalid instruction type: %d\ninstr: %s\nline: %s", 
+                    state->cur_line->instr.type, 
+                    state->cur_line->instr.text,
+                    state->cur_line->raw_text);
         }
         
         // Next line
@@ -687,5 +692,10 @@ struct line *assemble(struct asmstate *state, const char *filename) {
         
     }
     
+    popd();
     return lines;
+    
+error:
+    popd();
+    return NULL;
 }

@@ -17,8 +17,8 @@
 #define RES_STACK_SIZE 8192
 #define MAX_PATHLINE_SIZE (PATH_MAX + 128) 
 
-#define INCLUDE_PRE "\tPUSHD\t\"%s\"\t; --- Including: %s"
-#define INCLUDE_POST "\tPOPD\t\"%s\"\t; --- End of include: %s"
+#define INCLUDE_PRE "\tpushd\t\"%s\"\t; --- Including: %s"
+#define INCLUDE_POST "\tpopd\t\t; --- End of include: %s"
 
 
 

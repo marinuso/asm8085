@@ -1,4 +1,4 @@
-/* asm8085 (C) 2019 Marinus Oosters 
+/* asm8085 (C) 2019-20 Marinus Oosters 
  *
  * instructions.h
  * This file lists all the instructions (opcodes and directives) in one place
@@ -27,6 +27,8 @@ _DIR(if)
 _DIR(ifdef)
 _DIR(ifndef)
 _DIR(endif)
+_DIR(pushd)
+_DIR(popd)
 
 /* Opcodes */
 _OP(mov)
