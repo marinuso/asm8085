@@ -200,7 +200,9 @@ int dir_include(struct asmstate *state) {
     
     int pre_len, post_len;
     
-    pre_len = snprintf(INCLUDE_PRE, MAX_PATHLINE_SIZE, dirname(fname), fname);
+    char *copy_fname = copy_string(fname);
+    pre_len = snprintf(INCLUDE_PRE, MAX_PATHLINE_SIZE, dirname(copy_fname), fname);
+    free(copy_fname);
     post_len = snprintf(INCLUDE_POST, MAX_PATHLINE_SIZE, fname);
     
     if (pre_len < 0 || post_len < 0) 
@@ -595,8 +597,21 @@ int dir_popd(struct asmstate *state) {
 struct line *assemble(struct asmstate *state, const char *filename) {
     intptr_t foo;
     
+    /* Switch the working directory for includes */
+    char *fcopy;
+    fcopy = copy_string(filename);
+    if (pushd(dirname(fcopy)) == -1) {
+        fprintf(stderr, "%s: cannot open directory: %s\n", filename, fcopy); 
+        free(fcopy);
+        return NULL;
+    }
+    free(fcopy);
+    
     /* Read and parse the file */
-    struct line *lines = read_file(filename);
+    fcopy = copy_string(filename);
+    struct line *lines = read_file(basename(fcopy));
+    free(fcopy);
+    
     state->cur_line = lines;
     if (lines == NULL) return NULL; // error
     
