@@ -9,6 +9,7 @@ TEST(dir_##NAME \
 ,   /*startup*/ \
     struct asmstate *state = init_asmstate(); \
     struct line *lines; \
+    intptr_t val; \
 ,   /*shutdown*/ \
     if(state) free_asmstate(state); \
     if(lines) free_line(lines,TRUE); \
@@ -16,18 +17,20 @@ TEST(dir_##NAME \
     CODE \
 )
 
+#define CHECKVAR(NAME, VAL) do { \
+    if (!get_var(state->knowns, #NAME, &val)) FAIL(#NAME " not defined"); \
+    if (val != (VAL)) FAIL(#NAME " not " #VAL ", but %d", (int)val); \
+} while(0)
+
 DIR_TEST(equ, {
-    
-    intptr_t val;
-    
+
     // Load, parse, and process the file with the definitions in it
     lines = assemble(state, "test_inputs/equtest.asm");
     if (lines == NULL) FAIL("processing failed");
     
     // Check that 'qux' is 3.
-    if (!get_var(state->knowns, "qux", &val)) FAIL("qux not defined");
-    if (val != 3) FAIL("qux not 3, but %d", (int)val);
-    
+    CHECKVAR(qux, 3);
+
     // Check that 'spam', 'ham', and 'eggs' exist but are unknown
     if (!get_var(state->unknowns, "spam", &val)) FAIL("spam not defined");
     if (!get_var(state->unknowns, "ham", &val)) FAIL("ham not defined");
@@ -36,13 +39,22 @@ DIR_TEST(equ, {
 
 DIR_TEST(include, {
     
-    intptr_t val;
     lines = assemble(state, "test_inputs/includetest.asm");
     if (lines == NULL) FAIL("processing failed");
     
     // Check that 'inc3' is 30.
-    if (!get_var(state->knowns, "inc3", &val)) FAIL("inc3 not defined");
-    if (val != 30) FAIL("inc3 not 30, but %d", (int)val);
-    
+    CHECKVAR(inc3, 30);
 })
+
+DIR_TEST(org_db_dw_ds, {
+    
+    lines = assemble(state, "test_inputs/org_dbws_test.asm");
+    if (lines == NULL) FAIL("processing failed");
+    
+    CHECKVAR(at100, 100);
+    CHECKVAR(at104, 104);
+    CHECKVAR(at108, 108);
+    CHECKVAR(at120, 120);
+})
+
 
