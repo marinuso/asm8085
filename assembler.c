@@ -645,6 +645,7 @@ struct line *assemble(struct asmstate *state, const char *filename) {
                 break;
                 
             case DIRECTIVE: // Assembler directive
+                resolve_all(state); // make sure all variables are defined as far as possible
                 switch(state->cur_line->instr.instr) {
 
                     #define _DIR(dir)\

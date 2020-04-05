@@ -66,7 +66,7 @@ struct line *read_file(const char *filename) {
     FILE *file = fopen(filename, "r");
     
     if (!file) {
-        fprintf(stderr, "%s: cannot open file.\n", filename);
+        fprintf(stderr, "%s: cannot open file: %s\n", filename, strerror(errno));
         return NULL;
     }
     

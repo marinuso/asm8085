@@ -31,6 +31,7 @@ TEST(pushd_popd
     
     // Change to each directory in turn
     for (i=1; i<11; i++) {
+ 
         if (pushd(dnames[i]) == -1) FAIL("cannot change to directory: %s", strerror(errno));
         
         // Did we get there?
@@ -39,7 +40,7 @@ TEST(pushd_popd
     }
     
     // See if we can pop them back
-    for (i=9; i<=0; i++) {
+    for (i=9; i>=0; i--) {
         if (popd() == -1) FAIL("cannot pop directory: %s", strerror(errno));
         // Did we get there?
         if (getcwd(curdir, MAXDIRLEN) == NULL) FAIL("cannot get directory: %s", strerror(errno));

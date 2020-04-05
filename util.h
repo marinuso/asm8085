@@ -9,6 +9,7 @@
 #include <stdarg.h>
 #include <ctype.h>
 #include <stdint.h>
+#include <errno.h>
 
 #define FALSE 0
 #define TRUE (!FALSE)

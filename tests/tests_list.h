@@ -8,4 +8,5 @@
 #include "parser_tests.h"
 #include "macro_tests.h"
 #include "dirstack_tests.h"
+#include "directive_tests.h"
 
