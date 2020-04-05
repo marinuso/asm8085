@@ -57,4 +57,17 @@ DIR_TEST(org_db_dw_ds, {
     CHECKVAR(at120, 120);
 })
 
+DIR_TEST(if, {
+    lines = assemble(state, "test_inputs/iftest.asm");
+    if (lines == NULL) FAIL("processing failed");
+    
+    CHECKVAR(foo, 42);
+    CHECKVAR(qux, 10);
+    CHECKVAR(spam, 100);
+    CHECKVAR(ham, 20);
+    CHECKVAR(eggs, 30);
+    CHECKVAR(bar, 47);
+    
+})
+
 
