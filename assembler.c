@@ -598,6 +598,7 @@ int dir_popd(struct asmstate *state) {
 // Assemble a file
 struct line *assemble(struct asmstate *state, const char *filename) {
     intptr_t foo;
+    struct line *macro, *macro_end;
     
     /* Switch the working directory for includes */
     char *fcopy;
@@ -654,7 +655,7 @@ struct line *assemble(struct asmstate *state, const char *filename) {
             
             
         }
-        
+                
         // Handle the current line 
         switch(state->cur_line->instr.type) {
             case NONE: // No instruction on the line.
@@ -675,6 +676,15 @@ struct line *assemble(struct asmstate *state, const char *filename) {
                     default:
                         FATAL_ERROR("invalid assembler directive");
                 }
+                break;
+                
+            case MACRO: // Macro expansion
+                macro = expand_macro(state->cur_line, state->macros, &macro_end);
+                if (macro == NULL) goto error;
+                
+                macro_end->next_line = state->cur_line->next_line;
+                state->prev_line->next_line = macro;
+                state->cur_line = state->prev_line;
                 break;
             
             // TODO: Implement the rest

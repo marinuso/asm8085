@@ -70,4 +70,17 @@ DIR_TEST(if, {
     
 })
 
+DIR_TEST(macro, {
+    lines = assemble(state, "test_inputs/macrotest.asm");
+    if (lines == NULL) FAIL("processing failed");
+    
+    CHECKVAR(three, 3);
+    CHECKVAR(four, 4);
+    CHECKVAR(six, 6);
+    CHECKVAR(ten, 10);
+    CHECKVAR(twelve, 12);
+    CHECKVAR(twentyfour, 24);
+    
+})
+
 
