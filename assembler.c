@@ -711,7 +711,8 @@ struct line *assemble(struct asmstate *state, const char *filename) {
                     default:
                         FATAL_ERROR("invalid opcode");
                 }
-            
+                break; 
+                
             default:
                 FATAL_ERROR("invalid instruction type: %d\ninstr: %s\nline: %s", 
                     state->cur_line->instr.type, 

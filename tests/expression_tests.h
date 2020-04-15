@@ -1,4 +1,4 @@
-/* asm8085 (C) 2019 Marinus Oosters */
+/* asm8085 (C) 2019-20 Marinus Oosters */
 
 // This file contains tests for the functions in expression.c
 
@@ -98,10 +98,12 @@ EX_TEST(single_tokens, {
     TOKNUM("0o42",      042);
     TOKNUM("0O42",      042);
     TOKNUM("042",       042);
-    TOKNUM("0b101010",   42);
+//    TOKNUM("0b101010",   42);
     TOKNUM("101010b",    42);
-    TOKNUM("-0b101010", -42);
+//    TOKNUM("-0b101010", -42);
     TOKNUM("-101010b",  -42);
+    TOKNUM("0aah",     0xAA);
+    TOKNUM("0bbh",     0xBB);
     // Test names
     TOKNAME("hello");
     TOKNAME("a.bc.def");

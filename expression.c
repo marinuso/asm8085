@@ -1,4 +1,4 @@
-/* asm8085 (C) 2019 Marinus Oosters */
+/* asm8085 (C) 2019-20 Marinus Oosters */
 
 #include "expression.h"
 
@@ -34,7 +34,7 @@ struct base_fx_s {
 };
 
 static const struct base_fx_s base_pfx[] = {
-    {"0b", 2},
+//    {"0b", 2},
     {"0o", 8},
     {"0x", 16},
     {"$", 16},
@@ -200,7 +200,7 @@ struct token *try_bracket(const char *begin, const char **out_ptr) {
 // if the token at *ptr is a valid number, return a token, otherwise NULL
 struct token *try_number(const char *begin, const char **out_ptr) {
     int sign = 1, base = 10, i, out_num;
-    char base_given = FALSE;
+    char base_given = FALSE, maybe_octal = FALSE;
     char digits[] = "0123456789ABCDEF";
     char number_text[MAX_NUM_LEN+1] = {'\0'};
     const char *ptr = begin;
@@ -234,17 +234,16 @@ struct token *try_number(const char *begin, const char **out_ptr) {
         // to prevent clashes with names (e.g. 'ABCDH' could be the label 'abcdh' or the number '0xABCD' otherwise)
         if (! (*ptr >= '0' && *ptr <= '9')) return NULL;
         
-        // If the number starts with 0 and is followed by an octal digit, that means octal.
+        // If the number starts with 0 and is followed by an octal digit, that means it may be octal.
         if (*ptr == '0' && ptr[1] >= '0' && ptr[1] <= '7') {
-            base_given = TRUE;
-            base = 8;
+            maybe_octal = TRUE;
             ptr++;
         }
     }
     
     // Collect all the necessary digits
-    for (i=0; i<MAX_NUM_LEN && ptr[i] && strchr(digits, ptr[i]); i++) {
-        number_text[i] = ptr[i];
+    for (i=0; i<MAX_NUM_LEN && ptr[i] && strchr(digits, toupper(ptr[i])); i++) {
+        number_text[i] = toupper(ptr[i]);
     }
     
     // If there were no digits, this is not a valid number. 
@@ -254,9 +253,15 @@ struct token *try_number(const char *begin, const char **out_ptr) {
     if (i == MAX_NUM_LEN) return NULL;
     
     ptr += i;
-    
+
     // If we didn't have a base yet, check for a base suffix
     if (! base_given) {
+        // Hacky, but 'B' gets eaten as a possible hexadecimal number
+        if (toupper(ptr[-1]) == 'B' && toupper(*ptr) != 'H') {
+            ptr--;
+            number_text[i-1] = '\0';
+        }
+        
         b = base_sfx;
         while (b->base != 0) {
             if (toupper(*b->fx) == toupper(*ptr)) {
@@ -266,6 +271,9 @@ struct token *try_number(const char *begin, const char **out_ptr) {
             }
             b++;
         }
+        
+        // If the number started with '0' and no base was given, then it is octal.
+        if (base==10 && maybe_octal) base=8; 
         
         // Since the base may now have changed, check if the digits are all still valid
         digits[base] = '\0';

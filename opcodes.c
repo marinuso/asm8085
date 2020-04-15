@@ -124,8 +124,8 @@ void alloc_line_bytes(struct line *line, size_t amt) {
     if (!parse_argmt(REGPAIR, reg_a, &line->info)) return FALSE; \
     if (!parse_argmt(EXPRESSION, exp_a, &line->info)) return FALSE; \
     enum reg_pair rp = reg_a->data.reg_pair; \
-    /* Instruction consists of opcode + 1-byte immediate argument */ \
-    alloc_line_bytes(line, 2); \
+    /* Instruction consists of opcode + 2-byte immediate argument */ \
+    alloc_line_bytes(line, 3); \
     line->bytes[0] = (val); \
     /* The expression needs to be evaluated at the end */ \
     line->needs_process = TRUE; \
