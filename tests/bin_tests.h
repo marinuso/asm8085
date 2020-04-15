@@ -50,7 +50,7 @@ TEST(file_##name \
 })
 
 BIN_FILE_TEST(bytetest)
-
+BIN_FILE_TEST(labeltest)
         
                 
     
