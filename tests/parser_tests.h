@@ -1,9 +1,6 @@
-/* asm8085 (C) 2019 Marinus Oosters */
+/* asm8085 (C) 2019-20 Marinus Oosters */
 
 // This file contains tests for the functions in parser.c
-
-#include "../parser.h"
-#include "../expression.h"
 
 // Macro: parse a line and do some sanity checks, then run code, and free line afterwards
 #define TEST_LINE(str, code) do { \

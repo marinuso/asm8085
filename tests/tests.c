@@ -6,6 +6,18 @@
 #include <unistd.h>
 #include <errno.h>
 
+// Include all the headers
+#include "../assembler.h"
+#include "../bin_output.h"
+#include "../dirstack.h"
+#include "../expr_fns.h"
+#include "../expression.h"
+#include "../macro.h"
+#include "../parser.h"
+#include "../parser_types.h"
+#include "../util.h"
+#include "../varspace.h"
+
 // File containing all the tests 
 #define TESTFILE "tests_list.h"
 

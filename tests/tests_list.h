@@ -9,4 +9,5 @@
 #include "macro_tests.h"
 #include "dirstack_tests.h"
 #include "directive_tests.h"
+#include "bin_tests.h"
 

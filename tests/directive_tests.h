@@ -2,8 +2,6 @@
 
 // This file contains tests for the assembly directives
 
-#include "../assembler.h"
-
 #define DIR_TEST(NAME,CODE) \
 TEST(dir_##NAME \
 ,   /*startup*/ \

@@ -314,7 +314,7 @@ struct line *parse_line(const char *text, struct line *prev, const char *filenam
 // Get opcode number, -1 if invalid.
 enum opcode op_from_str(const char *s) {
     int n = 0;
-    #define _OP(op) if (strcasecmp(s, #op)) n++; else return n;
+    #define _OP(op, _) if (strcasecmp(s, #op)) n++; else return n;
     #include "instructions.h"
     return -1;
 }

@@ -2,8 +2,6 @@
 
 // This file contains tests for the functions in varspace.c
 
-#include "../varspace.h"
-
 #define VS_INIT struct varspace *vs = alloc_varspace();
 #define VS_FREE free_varspace(vs);
 #define VS_TEST(name, code) TEST(vs_##name, VS_INIT, VS_FREE, code)

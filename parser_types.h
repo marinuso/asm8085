@@ -5,7 +5,7 @@
 
 // Opcodes and assembler directives 
 enum opcode {
-    #define _OP(op) OP_##op,
+    #define _OP(op, _) OP_##op,
     #include "instructions.h"
 };
 
@@ -74,7 +74,7 @@ struct line {
     /* Used during assembly */
     int visited;
     int n_bytes;
-    char *bytes;
+    unsigned char *bytes;
     int needs_process;
     int location;
     

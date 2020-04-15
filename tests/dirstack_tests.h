@@ -1,8 +1,6 @@
-/* asm8085 (C) 2019 Marinus Oosters */
+/* asm8085 (C) 2019-20 Marinus Oosters */
 
 // This file contains tests for the functions in dirstack.c
-
-#include "../dirstack.h"
 
 #define MAXDIRLEN 4096
 

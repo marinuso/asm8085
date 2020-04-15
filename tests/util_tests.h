@@ -2,8 +2,6 @@
 
 // This file contains tests for the functions in util.c
 
-#include "../util.h"
-
 #define UTIL_INIT char *s=NULL;
 #define UTIL_FREE if (s!=NULL) free(s);
 #define UTIL_TEST(name, code) TEST(util_##name, UTIL_INIT, UTIL_FREE, code)

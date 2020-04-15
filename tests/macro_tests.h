@@ -1,10 +1,5 @@
 /* asm8085 (C) 2019 Marinus Oosters */
 
-
-#include "../macro.h"
-#include "../parser.h"
-#include "../util.h"
-
 #define LINE(x) do { \
     error = FALSE; \
     l = parse_line(x, l, "test", &error); \

@@ -2,8 +2,6 @@
 
 // This file contains tests for the functions in expression.c
 
-#include "../expression.h"
-
 #define EX_INIT \
     struct varspace *vs = alloc_varspace(); \
     struct lineinfo info; \
