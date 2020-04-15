@@ -52,7 +52,7 @@ TEST(file_##name \
 BIN_FILE_TEST(bytetest)
 BIN_FILE_TEST(labeltest)
 BIN_FILE_TEST(op8080)
-
+BIN_FILE_TEST(op8085)
     
     
     
