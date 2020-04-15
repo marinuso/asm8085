@@ -1,6 +1,7 @@
 /* asm8085 (C) 2020 Marinus Oosters */
 
 #ifndef __BIN_OUTPUT_H__
+#define __BIN_OUTPUT_H__ 
 
 #include <stdio.h>
 #include "parser_types.h"

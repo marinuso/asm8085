@@ -98,6 +98,7 @@ EX_TEST(single_tokens, {
     TOKNUM("0o42",      042);
     TOKNUM("0O42",      042);
     TOKNUM("042",       042);
+    TOKNUM("'*'",        42);
 //    TOKNUM("0b101010",   42);
     TOKNUM("101010b",    42);
 //    TOKNUM("-0b101010", -42);

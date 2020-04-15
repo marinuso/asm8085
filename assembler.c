@@ -618,6 +618,8 @@ struct line *assemble(struct asmstate *state, const char *filename) {
     /* Read and parse the file */
     fcopy = copy_string(filename);
     struct line *lines = read_file(basename(fcopy));
+    if (lines == NULL) fprintf(stderr, "%s: failed to read file\n", filename);
+    
     free(fcopy);
     
     state->cur_line = lines;

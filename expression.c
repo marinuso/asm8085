@@ -196,7 +196,52 @@ struct token *try_bracket(const char *begin, const char **out_ptr) {
     return t;
 }
     
-
+// if the token at *ptr is a valid character constant, return it, otherwise NULL
+struct token *try_char_const(const char *begin, const char **out_ptr) {
+    struct token *t = NULL;
+    const char *ptr = begin;
+    
+    // If it doesn't start with "'", it's not a character constant
+    if (ptr[0] != '\'') return NULL;
+    if (ptr[1] != '\\' && ptr[2] == '\'') {
+        // no escape code
+        *out_ptr = &ptr[3];
+        
+        // text of token 
+        char *s = calloc(4, sizeof(char));
+        memcpy(s, ptr, 3);
+        
+        t = alloc_token();
+        t->text = s;
+        t->type = NUMBER;
+        t->value = ptr[1];
+    } else if (ptr[1] == '\\' && ptr[3] == '\'') {
+        // escape code
+        *out_ptr = &ptr[4];
+        
+        // text of token
+        char *s = calloc(5, sizeof(char));
+        memcpy(s, ptr, 4);
+        
+        t = alloc_token();
+        t->text = s;
+        t->type = NUMBER;
+        switch(ptr[2]) {
+            case 'a': t->value='\a'; break;
+            case 'b': t->value='\b'; break;
+            case 'e': t->value='\e'; break;
+            case 'f': t->value='\f'; break;
+            case 'n': t->value='\n'; break;
+            case 'r': t->value='\r'; break;
+            case 'v': t->value='\v'; break;
+            default: t->value=ptr[2];
+        }
+    }
+    
+    return t;
+}
+    
+    
 // if the token at *ptr is a valid number, return a token, otherwise NULL
 struct token *try_number(const char *begin, const char **out_ptr) {
     int sign = 1, base = 10, i, out_num;
@@ -329,6 +374,7 @@ struct token *get_token(const char *ptr, const char **out_ptr, const struct line
     }
     if (t != NULL) return t; 
     
+    t = try_char_const(ptr, out_ptr); if (t != NULL) return t; 
     t = try_number(ptr, out_ptr); if (t != NULL) return t; 
     t = try_keyword(ptr, out_ptr); if (t != NULL) return t; 
     t = try_name(ptr, out_ptr); if (t != NULL) return t; 
