@@ -8,6 +8,9 @@ TESTS = $(shell ls tests/*.h)
 
 all: asm8085 test
 
+install: asm8085
+	install asm8085 /usr/bin
+
 asm8085: asm8085.o $(OBJ)
 	$(CC) $(CFLAGS) -o asm8085 $(OBJ) asm8085.o
 
