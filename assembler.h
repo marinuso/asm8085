@@ -44,6 +44,9 @@ void free_asmstate(struct asmstate *state);
 // Do some sanity checks 
 char sanity_checks(const struct line *line);
 
+// Assemble lines
+struct line *asm_lines(struct asmstate *state, struct line *lines);
+
 // Assemble a file
 struct line *assemble(struct asmstate *state, const char *filename);
 

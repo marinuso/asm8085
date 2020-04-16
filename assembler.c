@@ -600,27 +600,10 @@ int dir_popd(struct asmstate *state) {
 }
 
 
-// Assemble a file
-struct line *assemble(struct asmstate *state, const char *filename) {
+// Assemble lines
+struct line *asm_lines(struct asmstate *state, struct line *lines) {
     intptr_t foo;
     struct line *macro, *macro_end;
-    
-    /* Switch the working directory for includes */
-    char *fcopy;
-    fcopy = copy_string(filename);
-    if (pushd(dirname(fcopy)) == -1) {
-        fprintf(stderr, "%s: cannot open directory: %s\n", filename, fcopy); 
-        free(fcopy);
-        goto error;
-    }
-    free(fcopy);
-    
-    /* Read and parse the file */
-    fcopy = copy_string(filename);
-    struct line *lines = read_file(basename(fcopy));
-    if (lines == NULL) fprintf(stderr, "%s: failed to read file\n", filename);
-    
-    free(fcopy);
     
     state->cur_line = lines;
     if (lines == NULL) goto error;
@@ -641,7 +624,7 @@ struct line *assemble(struct asmstate *state, const char *filename) {
             state->cur_line->location = state->prev_line->location + state->prev_line->n_bytes;
             
             if (state->cur_line->location > 0xFFFF) {
-                error_on_line(state->cur_line, "line would be assembled beyond memory (location = %d",
+                error_on_line(state->cur_line, "line would be assembled beyond memory (location = %d)",
                         state->cur_line->location);
                 return NULL;
             }
@@ -726,7 +709,36 @@ struct line *assemble(struct asmstate *state, const char *filename) {
         state->prev_line = state->cur_line;
         state->cur_line = state->prev_line->next_line;
         
+    }    
+    
+    return lines;
+error:
+    return NULL;
+    
+}
+
+// Assemble a file
+struct line *assemble(struct asmstate *state, const char *filename) {
+    
+    /* Switch the working directory for includes */
+    char *fcopy;
+    fcopy = copy_string(filename);
+    if (pushd(dirname(fcopy)) == -1) {
+        fprintf(stderr, "%s: cannot open directory: %s\n", filename, fcopy); 
+        free(fcopy);
+        goto error;
     }
+    free(fcopy);
+    
+    /* Read and parse the file */
+    fcopy = copy_string(filename);
+    struct line *lines = read_file(basename(fcopy));
+    if (lines == NULL) fprintf(stderr, "%s: failed to read file\n", filename);
+    
+    free(fcopy);
+    
+    lines = asm_lines(state, lines); 
+    if (lines == NULL) goto error; 
     
     popd();
     resolve_all(state);

@@ -1,4 +1,4 @@
-/* asm8085 (C) 2019 Marinus Oosters */
+/* asm8085 (C) 2019-20 Marinus Oosters */
 
 #include "parser.h"
 
@@ -38,6 +38,7 @@ void free_line_mem(struct line *line) {
     if(line->info.lastlabel) free(line->info.lastlabel);
     if(line->instr.text) free(line->instr.text);
     if(line->argmts) free_argmt(line->argmts);
+    if(line->bytes) free(line->bytes);
 }
 
 /* Free a line, recursively if needed (i.e. free all the following lines too). 
@@ -192,7 +193,7 @@ void parse_arguments(struct line *l, const char *ptr, char *error) {
             parse_buf[length++] = *ptr;
             
             // Check for string begin and end
-            if (!strdelim && (*ptr == '"' || *ptr == '\'')) {
+            if (!strdelim && (*ptr == '"' || *ptr == '\'' || *ptr == '`')) {
                 strdelim = *ptr;
             } else if (strdelim && *ptr == strdelim) {
                 strdelim = 0;

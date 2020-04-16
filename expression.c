@@ -196,6 +196,60 @@ struct token *try_bracket(const char *begin, const char **out_ptr) {
     return t;
 }
     
+// an opcode with arguments can be quoted in backticks: `mvi a,_` 
+// this returns the opcode byte
+struct token *try_backtick_opcode(const char *begin, const char **out_ptr) {
+    struct token *t = NULL;
+    
+    if (*begin != '`') return NULL;
+    // find corresponding backtick
+    
+    const char *backtick = strchr(begin + 1, '`');
+    if (backtick == NULL) return NULL;
+    
+    // make the text for the 'token'
+    char *text = calloc(backtick-begin + 2, 1);
+    if (text == NULL) FATAL_ERROR("failed to allocate space for token text");
+    memcpy(text, begin, backtick-begin + 1);
+    
+    // make the 'line' that should be parsed
+    const char *start = begin + 1, *end = backtick;
+    size_t size = end - start;
+    char *p_line = calloc(size + 2, 1);
+    if (p_line == NULL) FATAL_ERROR("failed to allocate space for quoted line");
+    p_line[0] = ' '; // to make sure nothing is interpreted as a label
+    memcpy(p_line + 1, start, size);
+    
+    // parse the line
+    char error = FALSE;
+    struct line *line = parse_line(p_line, NULL, text, &error);
+    if (line == NULL || error) goto free;
+    
+    // only opcodes are allowed
+    if (line->instr.type != OPCODE) goto free;
+    
+    struct asmstate *state = init_asmstate();
+    if (!asm_lines(state, line)) goto free;
+    
+    // this must have given us bytes
+    if (line->n_bytes < 1) goto free;
+    
+    // otherwise we now have the byte to return
+    t = alloc_token();
+    t->text = text;
+    t->type = NUMBER;
+    t->value = line->bytes[0];
+    
+    *out_ptr = backtick + 1;
+    
+free:
+    if (t == NULL) free(text);
+    free_line(line, FALSE);
+    free(p_line);
+    
+    return t;
+}
+    
 // if the token at *ptr is a valid character constant, return it, otherwise NULL
 struct token *try_char_const(const char *begin, const char **out_ptr) {
     struct token *t = NULL;
@@ -374,6 +428,7 @@ struct token *get_token(const char *ptr, const char **out_ptr, const struct line
     }
     if (t != NULL) return t; 
     
+    t = try_backtick_opcode(ptr, out_ptr); if (t != NULL) return t; 
     t = try_char_const(ptr, out_ptr); if (t != NULL) return t; 
     t = try_number(ptr, out_ptr); if (t != NULL) return t; 
     t = try_keyword(ptr, out_ptr); if (t != NULL) return t; 

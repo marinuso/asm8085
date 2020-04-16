@@ -16,22 +16,12 @@ void help() {
 // Replace extension by '.bin'
 char *make_bin_file(const char *fname) {
     char *bin, *dot, *slash; 
-    
-    fprintf(stderr, "a");
-    
     bin = copy_string(fname);
-    
-    fprintf(stderr, ".");
-    
     bin = realloc(bin, strlen(bin)+5); // make sure there is room
-    
-    fprintf(stderr, "b");
-    
+
     // Find last slash and dot
     slash = strrchr(bin, '/');
     dot = strrchr(bin, '.');
-    
-    fprintf(stderr, "c");
     
     if (dot == NULL || slash > dot) {
         // No dot, or slash after dot: append ".bin" 

@@ -105,11 +105,16 @@ EX_TEST(single_tokens, {
     TOKNUM("-101010b",  -42);
     TOKNUM("0aah",     0xAA);
     TOKNUM("0bbh",     0xBB);
+    // Test backtick 
+    TOKNUM("`nop`",       0);
+    TOKNUM("`mov a,b`", 0x78);
+    TOKNUM("`mvi a,_`", 0x3E);
     // Test names
     TOKNAME("hello");
     TOKNAME("a.bc.def");
     TOKNAME(".boo");
     TOKNAME("$");  
+    
 
     SUCCEED;
 })
@@ -222,6 +227,15 @@ EX_TEST(eval_simple, {
     EVAL("high $FACE", 0xFA);
     EVAL("low $FACE", 0xCE);
     SUCCEED;
+})
+
+// Test backtick quoted instructions
+EX_TEST(backticks, {
+   
+    // nop=00h, lxi b=01h, stax b=02h, inx b=03h, inr b=04h, dcr b=05h
+    // they should evaluate to normal numbers that can be added up together
+    EVAL("`nop` + `lxi b,_` + `stax b` + `inx b` + `inr b` + `dcr b`", 15);
+    
 })
 
 // Test the evaluation order 

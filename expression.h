@@ -11,6 +11,7 @@
 #include "parser_types.h"
 #include "expr_fns.h"
 #include "varspace.h"
+#include "assembler.h"
 
 #define MAX_NUM_LEN 10  // maximum length of number token
 #define EVAL_STACK_SIZE 1024
