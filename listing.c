@@ -49,8 +49,8 @@ void write_listing(FILE *f, const struct asmstate *state, const struct line *lin
         else fprintf(f, "%6d ", line->info.lineno);
         
         // If the line defines bytes, print the location 
-        if (line->n_bytes > 0) fprintf(f, "%04X:  ", line->location);
-        else fprintf(f, "       ");
+        if (line->n_bytes > 0) fprintf(f, "%04X: ", line->location);
+        else fprintf(f, "      ");
         
         // Print bytes, if there are any
         n_bytes = line->n_bytes;
