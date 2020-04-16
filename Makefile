@@ -6,7 +6,7 @@ CFILES = $(shell ls *.c | grep -v asm8085.c)
 OBJ = $(CFILES:.c=.o)
 TESTS = $(shell ls tests/*.h)
 
-all: test asm8085
+all: asm8085 test
 
 asm8085: asm8085.o $(OBJ)
 	$(CC) $(CFLAGS) -o asm8085 $(OBJ) asm8085.o
