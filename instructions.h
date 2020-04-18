@@ -16,6 +16,7 @@
 
 /* Directives */
 _DIR(include)
+_DIR(incbin)
 _DIR(org)
 _DIR(db)
 _DIR(dw)

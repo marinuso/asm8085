@@ -233,6 +233,49 @@ int dir_include(struct asmstate *state) {
         
 }
 
+// include a binary file
+int dir_incbin(struct asmstate *state) {
+    struct line *cur_line = state->cur_line;
+    
+    // See if we have the right arguments
+    if (cur_line->n_argmts != 1 || !parse_argmt(STRING, cur_line->argmts, &cur_line->info)) {
+        error_on_line(cur_line, "'incbin' needs one string argument.");
+        return FALSE;
+    }
+    
+    // Open the file
+    char *fname = cur_line->argmts->data.string;
+    FILE *file = fopen(fname, "r");
+    if (file == NULL) {
+        error_on_line(cur_line, "cannot open file: %s", fname);
+        return FALSE;
+    }
+    
+    // Read the file
+    unsigned char *mem = malloc(65536);
+    if (mem == NULL) FATAL_ERROR("could not allocate memory for binary file");
+    size_t size = fread(mem, 1, 65536, file);
+    fclose(file);
+    
+    // Check if there is enough room (whole file has been read and fits below current line
+    // in memory)
+    if (cur_line->location + size >= 65536) {
+        error_on_line(cur_line, "file is too big to include at %huX: %s",
+            cur_line->location, fname);
+        free(mem);
+        return FALSE;
+    }
+    
+    // Free extra memory and set up line
+    mem = realloc(mem, size);
+    if (mem == NULL) FATAL_ERROR("realloc() failed");
+    cur_line->n_bytes = size;
+    cur_line->bytes = mem;
+    cur_line->needs_process = FALSE;
+    
+    return TRUE;
+}
+
 // Handle an 'org' directive
 int dir_org(struct asmstate *state) {
     struct line *cur_line = state->cur_line;
