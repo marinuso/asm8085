@@ -54,5 +54,7 @@ BIN_FILE_TEST(labeltest)
 BIN_FILE_TEST(op8080)
 BIN_FILE_TEST(op8085)
 BIN_FILE_TEST(incbin_test)
+BIN_FILE_TEST(align)
+
     
     

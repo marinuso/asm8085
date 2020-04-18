@@ -30,6 +30,7 @@ _DIR(ifndef)
 _DIR(endif)
 _DIR(pushd)
 _DIR(popd)
+_DIR(align)
 
 /* Opcodes 
    

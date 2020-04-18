@@ -159,6 +159,17 @@ void no_asm_output(struct line *line) {
     line->needs_process = FALSE;
 }
 
+// evaluate an expression, give error if it cannot be evaluated
+int eval_on_line(struct asmstate *state, const struct parsed_expr *expr, intptr_t *result, const char *errmsg) {
+    if (contains_undefined_names(expr, state->knowns)) {
+        error_on_line(state->cur_line, "%s", errmsg);
+        return FALSE;
+    } else {
+        *result = eval_expr(expr, state->knowns, &state->cur_line->info, state->cur_line->location);
+        return TRUE;
+    }
+}
+
 // Handle an 'include' directive
 int dir_include(struct asmstate *state) {
     struct line *cur_line = state->cur_line;
@@ -295,15 +306,16 @@ int dir_org(struct asmstate *state) {
     
     // The expression must be fully defined at this point
     struct parsed_expr *expr = cur_line->argmts->data.expr;
-    int newloc = eval_expr(expr, state->knowns, &cur_line->info, cur_line->location);
+    intptr_t newloc = 0;
+    //int newloc = eval_expr(expr, state->knowns, &cur_line->info, cur_line->location);
     
-    if (contains_undefined_names(expr, state->knowns)) {
-        // Not all values were defined
-        error_on_line(cur_line, "org: all labels in expression must be fully defined previously");
+    
+    if (!eval_on_line(state, expr, &newloc, 
+            "org: all labels in expression must be fully defined previously")) {
         return FALSE;
     } else {
         // This is the new origin for this line
-        cur_line->location = newloc;
+        cur_line->location = (int)newloc;
         // If the line has a label, that label must be set to the new location.
         if (cur_line->label != NULL) {
             set_var(state->knowns, cur_line->label, newloc);
@@ -402,13 +414,13 @@ int dir_ds(struct asmstate *state) {
     }
     
     // This expression needs to be fully specified
-    struct parsed_expr *expr = arg->data.expr;
-    cur_line->n_bytes = eval_expr(expr, state->knowns, &cur_line->info, cur_line->location);
-    if (contains_undefined_names(expr, state->knowns)) {
-        error_on_line(cur_line, "ds: all labels in size expression need to be fully defined previously");
+    intptr_t result = 0;
+    if (!eval_on_line(state, arg->data.expr, &result,
+            "ds: all labels in size expression need to be fully defined previously")) {
         return FALSE;
     }
-    
+    cur_line->n_bytes = (int)result;
+        
     // Allocate space and zero-fill it
     cur_line->bytes = calloc(cur_line->n_bytes, sizeof(char));
     if (cur_line->bytes == NULL) {
@@ -548,13 +560,12 @@ int dir_if(struct asmstate *state) {
         return FALSE;
     }
     
-    int cond = eval_expr(cur->argmts->data.expr, state->knowns, &cur->info, cur->location);
-    if (contains_undefined_names(cur->argmts->data.expr, state->knowns)) {
-        error_on_line(cur, "if: all labels in condition expression need to be fully defined previously");
-        return FALSE;
-    } else {
+    intptr_t cond = 0;
+    if (eval_on_line(state, cur->argmts->data.expr, &cond, 
+            "if: all labels in condition expression need to be fully defined previously"))
         return handle_if(state, cond);
-    }
+    else
+        return FALSE;
 }
     
 int dir_ifdef(struct asmstate *state) {
@@ -642,6 +653,54 @@ int dir_popd(struct asmstate *state) {
     return TRUE;
 }
 
+// align
+int dir_align(struct asmstate *state) {
+    struct line *cur = state->cur_line;
+    intptr_t alignment = 0, fill = 0;
+    unsigned char fill_u = 0;
+    
+    // we need 1 or 2 arguments
+    if (cur->n_argmts != 1 && cur->n_argmts != 2) {
+        error_on_line(cur, "align: invalid arguments; need alignment and optional fill byte");
+        return FALSE;
+    }
+    
+    // the first argument is the alignment
+    if (!parse_argmt(EXPRESSION, cur->argmts, &cur->info)) return FALSE;
+    if (!eval_on_line(state, cur->argmts->data.expr, &alignment,
+            "align: alignment expression must be fully defined")) return FALSE;
+    
+    // if there is a second argument, it is the fill byte (default 0)
+    if (cur->n_argmts == 2) {
+        struct argmt *fill_arg = cur->argmts->next_argmt;
+        if (!parse_argmt(EXPRESSION, fill_arg, &cur->info)) return FALSE;
+        if (!eval_on_line(state, fill_arg->data.expr, &fill,
+                "align: fill byte expression must be fully defined")) return FALSE;
+        
+        fill_u = (unsigned char) fill;
+        
+        // check if it is within byte value
+        if (fill < -128 || fill > 255)
+            error_on_line(cur, "align: warning: fill byte value (%X) truncated to 8 bits (%02X)",
+                    (int)fill, (unsigned char)fill_u);
+    }
+    
+    // If this line is already aligned, do nothing
+    if (cur->location % alignment == 0) {
+        no_asm_output(cur);
+        return TRUE;
+    } else {
+        // Otherwise, pad it until it is aligned
+        cur->n_bytes = alignment - (cur->location % alignment);
+        cur->bytes = malloc(cur->n_bytes);
+        if (cur->bytes == NULL) FATAL_ERROR("malloc() failed");
+        memset(cur->bytes, fill_u, cur->n_bytes);
+        cur->needs_process = FALSE;
+        return TRUE;
+    }
+}
+        
+                
 
 // Assemble lines
 struct line *asm_lines(struct asmstate *state, struct line *lines) {
