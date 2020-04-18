@@ -13,7 +13,7 @@ void write_bytes(FILE *f, const struct line *l, int offset, int first) {
     int n = l->n_bytes - offset;
     
     
-    if (!first) fprintf(f,"            ");
+    if (!first) fprintf(f,"             ");
     if (n<0) FATAL_ERROR("negative byte amount");
     
     const unsigned char *b = l->bytes + offset; 
@@ -34,13 +34,13 @@ void write_bytes(FILE *f, const struct line *l, int offset, int first) {
         default:    // 4 or up
             fprintf(f, byte_out[4], b[0], b[1], b[2], b[3]);
     }
-     
+    
     if (!first) fprintf(f, "\n");
 }
 
 void write_listing(FILE *f, const struct asmstate *state, const struct line *lines) {
     const struct line *line;
-    int n_bytes, offset;
+    int offset;
     
     // Handle all the lines
     for (line=lines; line!=NULL; line=line->next_line) {
@@ -53,7 +53,6 @@ void write_listing(FILE *f, const struct asmstate *state, const struct line *lin
         else fprintf(f, "      ");
         
         // Print bytes, if there are any
-        n_bytes = line->n_bytes;
         offset = 0;
         write_bytes(f, line, offset, TRUE);
         
@@ -61,9 +60,12 @@ void write_listing(FILE *f, const struct asmstate *state, const struct line *lin
         fprintf(f, " %s\n", line->raw_text);
         
         // If there were more than 4 bytes, print the rest of the bytes on separate lines
-        for (offset = 4, n_bytes -= 4; n_bytes >= 0; n_bytes -= 4)
-            write_bytes(f, line, offset, FALSE);        
+        for (offset = 4; offset < line->n_bytes-1; offset += 4)
+            write_bytes(f, line, offset, FALSE);   
     }
+    
+    // If there are no symbols defined, skip the symbol table
+    if (state->knowns->variables == NULL) return; 
     
     // Then write the symbol table 
     fprintf(f, "\n\n");
@@ -77,7 +79,7 @@ void write_listing(FILE *f, const struct asmstate *state, const struct line *lin
     
     struct variable *v;
     // They are in reverse order of occurrence, so find the first one
-    for (v = state->knowns->variables; v->next != NULL; v = v->next);
+    for (v = state->knowns->variables; v != NULL && v->next != NULL; v = v->next);
     
     // And then print them in reverse order
     for (; v != NULL; v = v->prev) {
