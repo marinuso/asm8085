@@ -53,10 +53,8 @@ struct line *assemble(struct asmstate *state, const char *filename);
 // Evaluate all remaining expressions, and fill in the results
 int complete(struct asmstate *state, struct line *lines);
 
+#include "directives.h"
 #include "opcodes.h"
 
-// Prototypes for assembler directives
-#define _DIR(name) int dir_##name (struct asmstate *state);
-#include "instructions.h"
 
 #endif

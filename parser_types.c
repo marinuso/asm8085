@@ -1,4 +1,4 @@
-/* asm8085 (C) 2019 Marinus Oosters 
+/* asm8085 (C) 2019-20 Marinus Oosters 
  *
  * Functions to make copies of data structures in parser_types.h 
  */
@@ -7,6 +7,32 @@
 #include "util.h"
 #include "parser_types.h"
 
+
+#define ERROR "%s: line %d: "
+
+
+// Output on error: "<file>: line <line>: error\n"
+void error_on_line(const struct line *line, char *message, ...) {
+    fprintf(stderr, ERROR, line->info.filename, line->info.lineno);
+    va_list args;
+    va_start(args, message);
+    vfprintf(stderr, message, args);
+    va_end(args);
+    fprintf(stderr, "\n");
+}
+
+// Output on error: "<file>: error\n"
+void error_in_file(const struct line *line, char *message, ...) {
+    fprintf(stderr, "%s: ", line->info.filename);
+    va_list args;
+    va_start(args, message);
+    vfprintf(stderr, message, args);
+    va_end(args);
+    fprintf(stderr, "\n");
+}
+
+
+    
 
 // Deep copy of an argument (setting next to NULL)
 struct argmt *copy_argmt(const struct argmt *argmt) {

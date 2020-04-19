@@ -1,4 +1,4 @@
-/* asm8085 (C) 2019 Marinus Oosters */
+/* asm8085 (C) 2019-20 Marinus Oosters */
 
 #ifndef __PARSER_TYPES_H__
 #define __PARSER_TYPES_H__
@@ -79,6 +79,10 @@ struct line {
     int location;
     
 };
+
+// Print standardized error messages
+void error_on_line(const struct line *line, char *message, ...);
+void error_in_file(const struct line *line, char *message, ...);
 
 // Deep copy of an argument (setting next to NULL)
 struct argmt *copy_argmt(const struct argmt *argmt);

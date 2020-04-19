@@ -9,7 +9,7 @@
 
 
 // Print an error message given line info
-static void error_on_line(FILE *file, const struct lineinfo *info, const char *message, ...) {
+static void parse_error_line(FILE *file, const struct lineinfo *info, const char *message, ...) {
     char buffer[1024];
     va_list args;
     va_start(args, message);
@@ -213,10 +213,10 @@ void parse_arguments(struct line *l, const char *ptr, char *error) {
         
         // Check for errors
         if (bracket_depth != 0) {
-            error_on_line(stderr, &l->info, "mismatched brackets.");
+            parse_error_line(stderr, &l->info, "mismatched brackets.");
             *error = 1;
         } else if(strdelim != 0) {
-            error_on_line(stderr, &l->info, "non-terminated string.");
+            parse_error_line(stderr, &l->info, "non-terminated string.");
             *error = 1;
         } else {
             parse_buf[length] = '\0';
@@ -444,7 +444,7 @@ char parse_argmt(enum argmt_type types, struct argmt *argmt, const struct linein
         case REGISTER:
             argmt->data.reg = parse_reg(s);
             if (argmt->data.reg == R_INV) {
-                error_on_line(stderr, info, "invalid register: %s; expected a, b, c, d, e, f, h, l, or m.", s); 
+                parse_error_line(stderr, info, "invalid register: %s; expected a, b, c, d, e, f, h, l, or m.", s); 
                 success = FALSE; 
             } else {
                 argmt->type = REGISTER;
@@ -454,7 +454,7 @@ char parse_argmt(enum argmt_type types, struct argmt *argmt, const struct linein
         case REGPAIR:
             argmt->data.reg_pair = parse_reg_pair(s);
             if (argmt->data.reg_pair == RP_INV) {
-                error_on_line(stderr, info, "invalid register pair: %s; expected b, d, h, sp or psw.", s);
+                parse_error_line(stderr, info, "invalid register pair: %s; expected b, d, h, sp or psw.", s);
                 success = FALSE;
             } else {
                 argmt->type = REGPAIR;
@@ -470,7 +470,7 @@ char parse_argmt(enum argmt_type types, struct argmt *argmt, const struct linein
             } else {
                 if (!(types & EXPRESSION)) {
                     /* It's not allowed to also be an expression, so this is definitely an error */
-                    error_on_line(stderr, info, "invalid string: %s", s);
+                    parse_error_line(stderr, info, "invalid string: %s", s);
                     success = FALSE;
                     break;
                 }
