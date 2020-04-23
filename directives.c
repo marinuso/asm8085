@@ -549,3 +549,27 @@ int dir_align(struct asmstate *state) {
 }
         
                 
+// assertion
+int dir_assert(struct asmstate *state) {
+    struct line *cur = state->cur_line;
+    no_asm_output(cur); // assert doesn't output any bytes
+    cur->needs_process = TRUE; // but it should be processed at the end
+    
+    // we need 1 or 2 arguments
+    if (cur->n_argmts != 1 && cur->n_argmts != 2) {
+        error_on_line(cur, "assert: invalid arguments; need expression and optional message");
+        return FALSE;
+    }
+    
+    // the first argument is the expression that needs to evaluate to nonzero
+    if (!parse_argmt(EXPRESSION, cur->argmts, &cur->info)) return FALSE;
+    // if there is a second argument, it must be a string that gives a message
+    if (cur->n_argmts == 2) {
+        if (!parse_argmt(STRING, cur->argmts->next_argmt, &cur->info)) return FALSE;
+    }
+    
+    return TRUE;
+}
+
+    
+    

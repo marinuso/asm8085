@@ -317,6 +317,7 @@ int complete(struct asmstate *state, struct line *lines) {
     struct line *line;
     struct argmt *argmt;
     unsigned char *pos;
+    int assertok = TRUE; // set to FALSE if assertion fails, this way all assertions are tried
     intptr_t result = 0;
     size_t size;
 
@@ -391,6 +392,21 @@ int complete(struct asmstate *state, struct line *lines) {
                         }
                         break;
                     
+                    case DIR_assert:
+                        // Assertion
+                        if (!eval_state(argmt, state, line, &result)) return FALSE;
+                        
+                        if (!result) {
+                            // Assertion failed
+                            char *msg;
+                            // Is there a message?
+                            if (argmt->next_argmt) msg = argmt->next_argmt->data.string; // yes
+                            else msg = argmt->raw_text; // no, use the expression
+                            error_on_line(line, "assertion failed: %s", msg);
+                            assertok = FALSE;
+                        }
+                        break;
+                    
                     default:
                         FATAL_ERROR("invalid directive %d", line->instr.instr);
                 }
@@ -437,5 +453,5 @@ int complete(struct asmstate *state, struct line *lines) {
         }
     }
     
-    return TRUE;
+    return assertok;
 }

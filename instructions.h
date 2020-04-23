@@ -31,6 +31,7 @@ _DIR(endif)
 _DIR(pushd)
 _DIR(popd)
 _DIR(align)
+_DIR(assert)
 
 /* Opcodes 
    
