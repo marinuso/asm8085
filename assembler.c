@@ -349,7 +349,7 @@ int complete(struct asmstate *state, struct line *lines) {
                                         return FALSE; // could not evaluate
                                     }
                                     // Give a warning (but don't fail) if the argument doesn't fit
-                                    if (result < -32768 || result > 65535) {
+                                    if (result < -128 || result > 255) {
                                         error_on_line(line, "warning: result does not fit in byte, will be truncated");
                                         error_on_line(line, "  %s == %02x", argmt->raw_text, result);
                                     }
