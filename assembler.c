@@ -69,8 +69,19 @@ struct asmstate *init_asmstate() {
     state->knowns = alloc_varspace();
     state->unknowns = alloc_varspace();
     state->prev_line = NULL;
+    state->orgstack = NULL;
 
     return state;
+}
+
+// Free orgstack
+void free_orgstack(struct orgstack_item *top) {
+    struct orgstack_item *s;
+    while (top != NULL) {
+        s = top;
+        top = top->prev;
+        free(s);
+    }
 }
 
 // Free assembler state
@@ -79,10 +90,40 @@ void free_asmstate(struct asmstate *state) {
         free_maclist(state->macros);
         free_varspace(state->knowns);
         free_varspace(state->unknowns);
+        free_orgstack(state->orgstack);
         free(state);
     }
 }
 
+// Push to org stack
+void push_org(struct asmstate *state, struct line *start, int newloc) {
+    struct orgstack_item *s;
+    if ((s = malloc(sizeof(struct orgstack_item))) == NULL)
+        FATAL_ERROR("failed to allocate memory for orgstack");
+    
+    s->loc = start->location;
+    s->start = start;
+    s->start->location = newloc;
+    s->prev = state->orgstack;
+    state->orgstack = s;
+}
+    
+// Pop from org stack 
+int pop_org(struct asmstate *state, struct line *end) {
+    if (state->orgstack == NULL) return FALSE;  // empty org stack
+    
+    // Pop it
+    struct orgstack_item *s;
+    s = state->orgstack;
+    state->orgstack = s->prev;
+    
+    // Restore original position plus the size of the relocated lines
+    int n_bytes = end->location - s->start->location;
+    end->location = s->loc + n_bytes;
+    
+    return TRUE;
+}
+    
 
 // Resolve all resolvable variables
 void resolve_all(struct asmstate *state) {

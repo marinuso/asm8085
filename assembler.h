@@ -31,7 +31,16 @@ struct asmstate {
     struct line *prev_line; // Holds a pointer to the previous line seen
     struct line *cur_line; // Holds a pointer to the current line 
     
+    struct orgstack_item *orgstack; // for pushorg and poporg
+    
     int n_includes; // count how many includes we've had
+};
+
+// org stack item
+struct orgstack_item {
+    struct orgstack_item *prev; // Holds the previous stack item
+    struct line *start; // Holds the line where it started
+    int loc; // location of start line
 };
     
     
@@ -52,6 +61,12 @@ struct line *assemble(struct asmstate *state, const char *filename);
 
 // Evaluate all remaining expressions, and fill in the results
 int complete(struct asmstate *state, struct line *lines);
+
+// Pop from the org stack.
+int pop_org(struct asmstate *state, struct line *end);
+
+// Push to the org stack
+void push_org(struct asmstate *state, struct line *start, int newloc);
 
 #include "directives.h"
 #include "opcodes.h"

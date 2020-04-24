@@ -571,5 +571,51 @@ int dir_assert(struct asmstate *state) {
     return TRUE;
 }
 
+// pushorg and poporg
+int dir_pushorg(struct asmstate *state) {
+    intptr_t neworg = 0;
+    struct line *cur = state->cur_line;
+    no_asm_output(cur);
+    
+    
+    // we need 1 expression argument which must be fully defined
+    if (cur->n_argmts != 1) {
+        error_on_line(cur, "pushorg: no new origin given");
+        return FALSE;
+    }
+    
+    if (!parse_argmt(EXPRESSION, cur->argmts, &cur->info)) return FALSE;
+    if (!eval_on_line(state, cur->argmts->data.expr, &neworg,
+            "pushorg: origin expression must be fully defined")) return FALSE;
+    
+    if (neworg < 0 || neworg > 65535) {
+        error_on_line(cur, "pushorg: invalid memory location: %X", (int) neworg);
+        return FALSE;
+    }
+    
+    push_org(state, cur, (int) neworg);
+    return TRUE;
+}
+
+int dir_poporg(struct asmstate *state) {
+    struct line *cur = state->cur_line;
+    no_asm_output(cur);
+    
+    // we need no arguments
+    if (cur->n_argmts != 0) {
+        error_on_line(cur, "poporg: takes no arguments");
+        return FALSE;
+    }
+    
+    if (!pop_org(state, cur)) {
+        error_on_line(cur, "poporg: no corresponding pushorg");
+        return FALSE;
+    } else {
+        return TRUE;
+    }
+}
+
+
+    
     
     

@@ -32,6 +32,8 @@ _DIR(pushd)
 _DIR(popd)
 _DIR(align)
 _DIR(assert)
+_DIR(pushorg)
+_DIR(poporg)
 
 /* Opcodes 
    
