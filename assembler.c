@@ -333,7 +333,7 @@ int eval_state(struct argmt *argmt, struct asmstate *state, const struct line *l
         if (ts->token->type != NAME) continue;
         if (!get_var(&vs, ts->token->text, &temp)) {
             // This label is not defined. 
-            error_on_line(line, "undefined label: %s", ts->token->text);
+            //error_on_line(line, "undefined label: %s", ts->token->text);
             
             // Is it an unknown label (i.e. `equ' with underspecified expression?)
             struct varspace uvs = temp_rename(state->unknowns, argmt->data.expr->basename);

@@ -610,7 +610,9 @@ char contains_undefined_names(const struct parsed_expr *expr, const struct varsp
     const struct token_stack_node *node;
     for (node = expr->start; node != NULL; node = node->next) {
         const struct token *t = node->token;
-        if (t->type == NAME && !get_var(vs, t->text, &val)) return TRUE;
+        if (t->type != NAME) continue;  // only look at names
+        if (!strcmp("$", t->text)) continue; // "$" refers to the location and therefore always exists
+        if (!get_var(vs, t->text, &val)) return TRUE;
     }
     
     return FALSE;
