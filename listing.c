@@ -41,6 +41,7 @@ void write_bytes(FILE *f, const struct line *l, int offset, int first) {
 void write_listing(FILE *f, const struct asmstate *state, const struct line *lines) {
     const struct line *line;
     int offset;
+    intptr_t value = 0;
     
     // Handle all the lines
     for (line=lines; line!=NULL; line=line->next_line) {
@@ -50,7 +51,17 @@ void write_listing(FILE *f, const struct asmstate *state, const struct line *lin
         
         // If the line defines bytes, print the location 
         if (line->n_bytes > 0) fprintf(f, "%04X: ", line->location);
-        else fprintf(f, "      ");
+        // If it is an 'equ', print its value
+        else if (line->instr.type == DIRECTIVE 
+              && line->instr.instr == DIR_equ) {
+         
+            set_base(state->knowns, line->info.lastlabel);
+            if (!get_var(state->knowns, line->label, &value)) {
+                fprintf(f, "???? =");
+            } else {
+                fprintf(f, "%04X =", (unsigned short) value);
+            }                
+        } else fprintf(f, "      ");
         
         // Print bytes, if there are any
         offset = 0;
