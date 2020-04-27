@@ -71,7 +71,7 @@ void write_listing(FILE *f, const struct asmstate *state, const struct line *lin
         fprintf(f, " %s\n", line->raw_text);
         
         // If there were more than 4 bytes, print the rest of the bytes on separate lines
-        for (offset = 4; offset < line->n_bytes-1; offset += 4)
+        for (offset = 4; offset < line->n_bytes; offset += 4)
             write_bytes(f, line, offset, FALSE);   
     }
     
