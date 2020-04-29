@@ -63,16 +63,22 @@ void write_listing(FILE *f, const struct asmstate *state, const struct line *lin
             }                
         } else fprintf(f, "      ");
         
-        // Print bytes, if there are any
-        offset = 0;
-        write_bytes(f, line, offset, TRUE);
+        // For a binary include, don't print all the bytes
+        if (line->instr.type == DIRECTIVE
+         && line->instr.instr == DIR_incbin) {
+             fprintf(f, "[.........] %s\n", line->raw_text);
+        } else {
+            // Print bytes, if there are any
+            offset = 0;
+            write_bytes(f, line, offset, TRUE);
         
-        // Print rest of line
-        fprintf(f, " %s\n", line->raw_text);
+            // Print rest of line
+            fprintf(f, " %s\n", line->raw_text);
         
-        // If there were more than 4 bytes, print the rest of the bytes on separate lines
-        for (offset = 4; offset < line->n_bytes; offset += 4)
-            write_bytes(f, line, offset, FALSE);   
+            // If there were more than 4 bytes, print the rest of the bytes on separate lines
+            for (offset = 4; offset < line->n_bytes; offset += 4)
+                write_bytes(f, line, offset, FALSE);
+        }
     }
     
     // If there are no symbols defined, skip the symbol table
