@@ -175,8 +175,10 @@ void resolve_all(struct asmstate *state) {
 // Assemble lines
 struct line *asm_lines(struct asmstate *state, struct line *lines) {
     intptr_t foo;
+    char bar;
     struct line *macro, *macro_end;
     
+    state->prev_line = parse_line("", NULL, "", &bar); // Dummy line with location set to 0
     state->cur_line = lines;
     if (lines == NULL) goto error;
     
@@ -187,19 +189,12 @@ struct line *asm_lines(struct asmstate *state, struct line *lines) {
     }
     
     while (state->cur_line != NULL) {
-        
-        if (state->prev_line == NULL) {
-            // initialize values
-            state->cur_line->location = 0;
-        } else {
-            // use values from previous line
-            state->cur_line->location = state->prev_line->location + state->prev_line->n_bytes;
+        state->cur_line->location = state->prev_line->location + state->prev_line->n_bytes;
             
-            if (state->cur_line->location > 0xFFFF) {
-                error_on_line(state->cur_line, "line would be assembled beyond memory (location = %d)",
-                        state->cur_line->location);
-                return NULL;
-            }
+        if (state->cur_line->location > 0xFFFF) {
+            error_on_line(state->cur_line, "line would be assembled beyond memory (location = %d)",
+                    state->cur_line->location);
+            return NULL;
         }
 
         set_base(state->knowns, state->cur_line->info.lastlabel);
