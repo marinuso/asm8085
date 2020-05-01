@@ -2,11 +2,9 @@
 
 #include "parser.h"
 
-#define LINE_BUF_SIZE 512      // 512 characters ought to be enough for everybody
+#define LINE_BUF_SIZE 512 
 
 #define PARSE_ERROR "%s: line %d: parse error: "
-
-
 
 // Print an error message given line info
 static void parse_error_line(FILE *file, const struct lineinfo *info, const char *message, ...) {
@@ -167,9 +165,10 @@ const char *parse_instruction(struct line *l, const char *ptr) {
    
 /* Parse the arguments (split on commas that aren't in brackets or strings) */
 void parse_arguments(struct line *l, const char *ptr, char *error) {
-    char parse_buf[LINE_BUF_SIZE], strdelim=0;
+    char *parse_buf = NULL, strdelim=0;
     int bracket_depth = 0, length = 0;
     struct argmt *prev = NULL, *cur = NULL;
+    int parse_buf_size = LINE_BUF_SIZE;
   
     l->n_argmts = 0;
     l->argmts = NULL;
@@ -177,6 +176,9 @@ void parse_arguments(struct line *l, const char *ptr, char *error) {
     if (!*ptr) {
         // There are no arguments.
         return;
+    } else {
+        parse_buf = malloc(parse_buf_size);
+        if (parse_buf == NULL) FATAL_ERROR("malloc() failed");
     }
     
     while (*ptr) {
@@ -189,7 +191,14 @@ void parse_arguments(struct line *l, const char *ptr, char *error) {
         bracket_depth = 0;
         strdelim = '\0';
         
-        while (*ptr && !(bracket_depth == 0 && strdelim == 0 && *ptr == ',') && length<LINE_BUF_SIZE) {
+        while (*ptr && !(bracket_depth == 0 && strdelim == 0 && *ptr == ',')) {
+            // add more memory if necessary
+            if (length >= parse_buf_size) {
+                parse_buf_size *= 2;
+                parse_buf = realloc(parse_buf, parse_buf_size);
+                if (parse_buf == NULL) FATAL_ERROR("realloc() failed");
+            }
+            
             parse_buf[length++] = *ptr;
             
             // Check for string begin and end
@@ -247,8 +256,9 @@ void parse_arguments(struct line *l, const char *ptr, char *error) {
 
         // Skip over the ',' we might be on.
         if (*ptr == ',') ptr++;
-        
-    } 
+    }
+
+    free(parse_buf);
 }
 
 /* Zero out the first comment character (;) that isn't in a string. Returns location if one was found. */
