@@ -428,6 +428,13 @@ char *parse_str(const char *t) {
             *p++ = *t;
         }
     }
+    
+    // Check that there is nothing but whitespace after the delimiter
+    if (*t == delim) t++;
+    for (; *t; t++) {
+        if (!isspace(*t)) goto error;
+    }
+    
     return s; 
     
 error:
