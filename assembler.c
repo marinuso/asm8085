@@ -70,6 +70,9 @@ struct asmstate *init_asmstate() {
     state->unknowns = alloc_varspace();
     state->prev_line = NULL;
     state->orgstack = NULL;
+    
+    state->n_includes = 0;
+    state->n_macro_exp = 0;
 
     return state;
 }
@@ -244,6 +247,14 @@ struct line *asm_lines(struct asmstate *state, struct line *lines) {
                 break;
                 
             case MACRO: // Macro expansion
+                if (state->n_macro_exp++ > MAX_MACRO_EXP) {
+                    // put a limit on the maximum amount of macro expansions
+                    // this way, the user is given an error, rather than a segfault
+                    // if a macro expansion is infinite
+                    error_on_line(state->cur_line, "too many macro expansions"); 
+                    goto error;
+                }
+                
                 macro = expand_macro(state->cur_line, state->macros, &macro_end);
                 if (macro == NULL) goto error;
                 

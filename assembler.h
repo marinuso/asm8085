@@ -14,6 +14,7 @@
 #include "macro.h"
 
 #define MAX_INCLUDES 1024
+#define MAX_MACRO_EXP 65536
 #define RES_STACK_SIZE 8192
 #define MAX_PATHLINE_SIZE (PATH_MAX + 128) 
 
@@ -33,6 +34,7 @@ struct asmstate {
     
     struct orgstack_item *orgstack; // for pushorg and poporg
     
+    int n_macro_exp; // count how many macro expansions we've ahd
     int n_includes; // count how many includes we've had
 };
 

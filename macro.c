@@ -62,8 +62,8 @@ struct line *expand_macro(struct line *invocation, struct maclist *macros, struc
     char *tmp;
     char *new_line; 
     char error = FALSE, cur_error = FALSE;
-    char errstr[128];
-
+    char errstr[128] = {'\0'};
+ 
     struct line *start_line = NULL, *line_prev = NULL, *line_cur, *line_mac; 
     
     // Sanity check
@@ -96,6 +96,12 @@ struct line *expand_macro(struct line *invocation, struct maclist *macros, struc
         FATAL_ERROR("Maximum length exceeded for unique macro expansion identifier.\n"
                     EXPANSION_TEMPLATE, macro->name, macro->expansions);
     }
+    
+    // Make error string
+    strncpy(errstr, invocation->info.filename, 127);
+    char *file_ends = strchr(errstr, ':');
+    if (file_ends == NULL) file_ends = errstr + strlen(errstr);
+    snprintf(file_ends, 128 - (file_ends - errstr), ": [%s]", invocation->instr.text);
         
     // Set up arguments
     for (i=1; i<=n_argmts; i++) {
@@ -121,9 +127,6 @@ struct line *expand_macro(struct line *invocation, struct maclist *macros, struc
     // but leave '#' in the first position alone.
     qsort(&replacements[1], n_argmts, sizeof(struct replacement), replacement_compare);
     
-    // Make error string
-    snprintf(errstr, 128, "%s: line %d: expansion of macro %s", invocation->info.filename, invocation->info.lineno, macro->name);
-    
     // Process each line in turn
     line_prev = NULL;
     start_line = NULL;
@@ -132,6 +135,8 @@ struct line *expand_macro(struct line *invocation, struct maclist *macros, struc
         new_line = string_replace(line_mac->raw_text, replacements, n_argmts+1);
         cur_error = FALSE;
         line_cur = parse_line(new_line, line_prev, errstr, &cur_error);
+        if (line_prev == NULL) line_cur->info.lineno = line_mac->info.lineno;
+        
         if (cur_error) {
             fprintf(stderr, "expanded line: %s\n", new_line);
             error = TRUE;
@@ -142,7 +147,7 @@ struct line *expand_macro(struct line *invocation, struct maclist *macros, struc
         }
         line_prev = line_cur;
     }
-    
+      
     if (error) {
         // Free the created lines and return NULL
         free_line(start_line, TRUE);
