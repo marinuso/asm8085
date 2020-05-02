@@ -193,7 +193,7 @@ void parse_arguments(struct line *l, const char *ptr, char *error) {
         
         while (*ptr && !(bracket_depth == 0 && strdelim == 0 && *ptr == ',')) {
             // add more memory if necessary
-            if (length >= parse_buf_size) {
+            if (length >= parse_buf_size-1) {
                 parse_buf_size *= 2;
                 parse_buf = realloc(parse_buf, parse_buf_size);
                 if (parse_buf == NULL) FATAL_ERROR("realloc() failed");
@@ -206,8 +206,8 @@ void parse_arguments(struct line *l, const char *ptr, char *error) {
                 strdelim = *ptr;
             } else if (strdelim && *ptr == strdelim) {
                 strdelim = 0;
-            } else if (strdelim && *ptr == '\\' && *(ptr+1) == strdelim) {
-                // Handle escaped string delimiter
+            } else if (*ptr == '\\') {
+                // Handle escaped chracter string delimiter
                 parse_buf[length++] = *ptr++;
             }
             
