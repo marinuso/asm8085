@@ -98,6 +98,11 @@ struct line *read_file(const char *filename) {
     return begin;
 
 }
+
+/* label ends with space or ':' */
+int isLabelEnd(int ch) {
+    return ch==':' || isspace(ch);
+}
     
 /* Set the label, if there is one. Returns pointer to start of instruction or to end of string. */
 char *parse_label(struct line *l) {
@@ -111,22 +116,17 @@ char *parse_label(struct line *l) {
         l->label = NULL;
     } else {
         // There is a label
-        label = copy_string_pred(ptr, isspace, TRUE);
+        label = copy_string_pred(ptr, isLabelEnd, TRUE);
         length = strlen(label);
         ptr += length;
-        
-        // If the label ends with ':', that's not part of the label.
-        if (label[length-1] == ':') {
-            label[length-1] = '\0';
-        }
         
         l->label = label;
         // If label starts with '.', it's not a top-level label
         if (label[0] != '.') l->info.lastlabel = copy_string(label);
     }
     
-    // Skip ahead to next nonwhitespace character or end of line
-    while (*ptr && isspace(*ptr)) ptr++;
+    // Skip ahead to next non-label character or end of line
+    while (*ptr && isLabelEnd(*ptr)) ptr++;
     return ptr;
 }
         
