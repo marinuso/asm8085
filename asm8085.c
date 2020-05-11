@@ -87,7 +87,7 @@ int main(int argc, char **argv) {
     struct line *lines = assemble(state, inp);
     if (lines == NULL) exit(1);
     
-    if (!complete(state, lines)) exit(1);
+    if (!complete(state, lines)) exit(2);
     
     // Restore the old working directory
     if (chdir(startdir) == -1) {

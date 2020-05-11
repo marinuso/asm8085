@@ -190,6 +190,7 @@ TEST(parse_file,
     fputs("       db     1,2,3,4   \n",f);
     fputs("label                   \n",f);
     fputs("label2 mov    c,d       \n",f);
+    fputs(".lab3  mov    h,l       \n",f);
     fclose(f);
     
     start = read_file(tempfile);
@@ -201,6 +202,7 @@ TEST(parse_file,
     TEST_F_LINE(LINE_CONTENTS(NULL, 4, DIRECTIVE, DIR_db));
     TEST_F_LINE(LINE_CONTENTS("label", 0, NONE));
     TEST_F_LINE(LINE_CONTENTS("label2", 2, OPCODE, OP_mov));
+    TEST_F_LINE(LINE_CONTENTS(".lab3", 2, OPCODE, OP_mov));
     
     if (line != NULL) FAIL("spurious extra line: '%s'", line->raw_text);
 })

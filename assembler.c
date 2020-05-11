@@ -41,7 +41,7 @@ char sanity_checks(const struct line *line) {
                     error = TRUE;
                 }
                 l++;
-            } else if (l[0] != '_' && !isalpha(l[0])) {
+            } else if (l[0] != '_' && l[0] != '.' && !isalpha(l[0])) {
                 error_on_line(line, "label name must start with letter or underscore: %s", line->label);
                 error = TRUE;
             }
@@ -158,9 +158,11 @@ void resolve_all(struct asmstate *state) {
             
             // Do we know all the variables to evaluate the expression?
             expr = resolve_line->argmts->data.expr;
-            if (!contains_undefined_names(expr, state->knowns)) {
+            // Evaluate the expression with the right basename
+            struct varspace vs = temp_rename(state->knowns, expr->basename); 
+            if (!contains_undefined_names(expr, &vs)) {
                 // We can resolve it
-                answer = eval_expr(expr, state->knowns, &resolve_line->info, resolve_line->location);
+                answer = eval_expr(expr, &vs, &resolve_line->info, resolve_line->location);
                 // That means it's known now
                 set_var(state->knowns, dva->name, answer);
                 resolved = TRUE;
@@ -327,15 +329,17 @@ error:
 // Evaluate an expression given a state. Return the result, or give errors.
 int eval_state(struct argmt *argmt, struct asmstate *state, const struct line *line, intptr_t *result) {
     intptr_t temp = 0;
-    *result = eval_expr(argmt->data.expr, state->knowns, &line->info, line->location);
-    if (!contains_undefined_names(argmt->data.expr, state->knowns)) {
+    struct varspace vs = temp_rename(state->knowns, argmt->data.expr->basename);
+    
+    *result = eval_expr(argmt->data.expr, &vs, &line->info, line->location);
+    if (!contains_undefined_names(argmt->data.expr, &vs)) {
         return TRUE;
     }
     
     /* Figure out which labels are not defined, and output them.*/
     struct token_stack_node *ts = argmt->data.expr->start;
-    struct varspace vs = temp_rename(state->knowns, argmt->data.expr->basename);
     for(; ts != NULL; ts=ts->next) {
+        //fprintf(stderr, "[%d:%s] ", ts->token->type, ts->token->text);
         if (ts->token->type != NAME) continue;
         if (!get_var(&vs, ts->token->text, &temp)) {
             // This label is not defined. 
@@ -393,6 +397,7 @@ int complete(struct asmstate *state, struct line *lines) {
                                 case EXPRESSION:
                                     // Evaluate the expressoin
                                     if (!eval_state(argmt, state, line, &result)) {
+                                        //fprintf(stderr, "(e)cannot eval: %s\n", argmt->raw_text);
                                         return FALSE; // could not evaluate
                                     }
                                     // Give a warning (but don't fail) if the argument doesn't fit
@@ -425,6 +430,7 @@ int complete(struct asmstate *state, struct line *lines) {
                             
                             // Evaluate the argument
                             if (!eval_state(argmt, state, line, &result)) {
+                                //fprintf(stderr, "(d)cannot eval: %s\n", argmt->raw_text);
                                 return FALSE;
                             }
                             
@@ -473,7 +479,10 @@ int complete(struct asmstate *state, struct line *lines) {
                 if (argmt->type != EXPRESSION) FATAL_ERROR("invalid argument type");
                 
                 // Evaluate the expression 
-                if (!eval_state(argmt, state, line, &result)) return FALSE;
+                if (!eval_state(argmt, state, line, &result)) {
+                    //fprintf(stderr, "(o)cannot eval: %s\n", argmt->raw_text);
+                    return FALSE;
+                }
                 
                 pos = line->bytes + 1; // First byte is opcode
                 if (line->n_bytes == 2) {
@@ -500,5 +509,6 @@ int complete(struct asmstate *state, struct line *lines) {
         }
     }
     
+    if(!assertok) fprintf(stderr, "complete() returning false\n");
     return assertok;
 }

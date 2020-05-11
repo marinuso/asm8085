@@ -56,6 +56,7 @@ BIN_FILE_TEST(op8085)
 BIN_FILE_TEST(incbin_test)
 BIN_FILE_TEST(align)
 BIN_FILE_TEST(pushorg_test)
+BIN_FILE_TEST(nesting)
 
 
     
