@@ -287,6 +287,7 @@ struct token *try_char_const(const char *begin, const char **out_ptr) {
             case 'f': t->value='\f'; break;
             case 'n': t->value='\n'; break;
             case 'r': t->value='\r'; break;
+            case 't': t->value='\t'; break;
             case 'v': t->value='\v'; break;
             default: t->value=ptr[2];
         }

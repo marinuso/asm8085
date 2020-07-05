@@ -293,3 +293,16 @@ EX_TEST(copy_parsed_expr, {
  
     free_parsed_expr(copy); 
 })
+
+// Test that escaped characters resolve to the right values
+EX_TEST(escaped_chars, {
+    EVAL("'\\a'", '\a');
+    EVAL("'\\b'", '\b');
+    EVAL("'\\e'", '\e');
+    EVAL("'\\f'", '\f');
+    EVAL("'\\n'", '\n');
+    EVAL("'\\r'", '\r');
+    EVAL("'\\t'", '\t');
+    EVAL("'\\v'", '\v');
+})
+
