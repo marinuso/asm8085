@@ -208,7 +208,7 @@ void parse_arguments(struct line *l, const char *ptr, char *error) {
                 strdelim = 0;
             } else if (*ptr == '\\') {
                 // Handle escaped chracter string delimiter
-                parse_buf[length++] = *ptr++;
+                parse_buf[length++] = *++ptr;
             }
             
             // Handle brackets     
