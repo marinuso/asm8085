@@ -4,3 +4,5 @@
 *.o
 asm8085
 tests/tests
+scratch
+scratch/*

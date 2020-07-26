@@ -34,6 +34,8 @@ _DIR(align)
 _DIR(assert)
 _DIR(pushorg)
 _DIR(poporg)
+_DIR(repeat)
+_DIR(endr)
 
 /* Opcodes 
    

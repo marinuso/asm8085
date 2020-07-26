@@ -87,7 +87,7 @@ struct argmt *copy_argmt_list(const struct argmt *argmts) {
 
 // Deep copy of line (setting next to NULL)
 struct line *copy_line(const struct line *line) {
-    struct line *copy = malloc(sizeof(struct line));
+    struct line *copy = calloc(1, sizeof(struct line));
     if (copy == NULL) FATAL_ERROR("failed to allocate memory for copy of line");
     
     copy->raw_text = copy_string(line->raw_text);

@@ -615,6 +615,87 @@ int dir_poporg(struct asmstate *state) {
     }
 }
 
+// repeat/endr
+int dir_endr(struct asmstate *state) {
+    // If an endr is encountered, that means it is not balanced
+    error_on_line(state->cur_line, "endr without repeat");
+    return FALSE;
+}
+
+int dir_repeat(struct asmstate *state) { 
+    struct line *cur = state->cur_line;
+    intptr_t repts; 
+    no_asm_output(cur);
+    
+    // we need 1 argument which must be fully defined
+    if (cur->n_argmts != 1) {
+        error_on_line(cur, "repeat: no repeat value given");
+        return FALSE;
+    }
+    
+    if (!parse_argmt(EXPRESSION, cur->argmts, &cur->info)) return FALSE;
+    if (!eval_on_line(state, cur->argmts->data.expr, &repts,
+            "repeat: repeat expression must be fully defined")) return FALSE;
+    
+    if (repts < 0) {
+        error_on_line(cur, "repeat: argument is negative");
+        return FALSE;
+    }
+    
+    // find the corresponding ENDR
+    int depth = 1;
+    struct line *endr, *endr_prev = cur;
+    for (endr = cur->next_line; endr != NULL; endr = endr->next_line) {
+        if (endr->instr.type != DIRECTIVE) continue;
+        if (endr->instr.instr == DIR_repeat) depth++;
+        else if (endr->instr.instr == DIR_endr) depth--;
+        if (depth == 0) break;
+        endr_prev = endr_prev->next_line;
+    }
+    
+    if (endr == NULL || depth > 0) {
+        error_on_line(cur, "repeat without endr");
+        return FALSE;
+    }
+    
+    if (repts == 0) {
+        // repeating code 0 times means to delete the code
+        state->prev_line->next_line = endr->next_line;
+        state->cur_line = state->prev_line;
+    } else if (repts == 1) {
+        // repeating code once means simply to delete the REPEAT and ENDR
+        state->prev_line->next_line = state->cur_line->next_line;
+        state->prev_line = state->cur_line;
+        endr_prev->next_line = endr->next_line;
+    } else {
+        // twice or more: we need to make N copies of the source
+        struct line *src_cur;
+        struct line *copy_prev = NULL, *copy_cur = NULL, *copy_start = NULL;
+        
+        while (repts--) {
+            src_cur = cur->next_line;
+            while (src_cur != endr) {
+                copy_cur = copy_line(src_cur);
+                if (copy_start == NULL) {
+                    copy_start = copy_cur;
+                } else {
+                    copy_prev->next_line = copy_cur;
+                }
+                copy_prev = copy_cur;
+                src_cur = src_cur->next_line;
+            }
+        }
+        
+        state->prev_line->next_line = copy_start;
+        state->cur_line = state->prev_line;
+        copy_cur->next_line = endr->next_line;
+    }
+    
+    return TRUE;
+}
+                
+            
+
 
     
     

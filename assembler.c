@@ -7,10 +7,13 @@ char sanity_checks(const struct line *line) {
     char error = FALSE;
     
     int macdepth = 0;
+    int repdepth = 0;
     int i;
     char *l;
+    const struct line *prevline;
     
     for (; line != NULL; line=line->next_line) {
+        prevline = line; 
         if (line->instr.type == DIRECTIVE) {
             // Macro without name?
             i = line->instr.instr;
@@ -27,10 +30,21 @@ char sanity_checks(const struct line *line) {
             else if (i == DIR_endm) {
                 if (line->label != NULL) { error_on_line(line, "named endm"); error = TRUE; }
                 macdepth--;
-                if (macdepth < 0) { error_on_line(line, "endm without macro"); error = TRUE; }
-                
+                if (macdepth < 0) { error_on_line(line, "endm without macro"); error = TRUE; }                
             } else if (i == DIR_if || i==DIR_ifdef || i==DIR_endif || i==DIR_ifndef) {
                 if (line->label != NULL) { error_on_line(line, "named if/endif"); error = TRUE; }
+            }
+            // Repeat with name?
+            else if (i == DIR_repeat) {
+                if (line->label != NULL) { error_on_line(line, "named repeat"); error = TRUE; }
+                repdepth++;
+                if (repdepth<0) repdepth=1;
+            }
+            // endr with name / without repeat?
+            else if (i == DIR_endr) {
+                if (line->label != NULL) { error_on_line(line, "named endr"); error = TRUE; }
+                repdepth--;
+                if (repdepth < 0) { error_on_line(line, "endr without repeat"); error = TRUE; }
             }
         } else if (line->label != NULL) {
             // Label names OK?
@@ -54,6 +68,11 @@ char sanity_checks(const struct line *line) {
             }
         }
     }
+    
+    // are there any unterminated macros?
+    if (macdepth > 0) { error_on_line(prevline, "missing endm"); error = TRUE; }
+    // are there any unterminated repeats?
+    if (repdepth > 0) { error_on_line(prevline, "missing endr"); error = TRUE; }
     
     return error;
 }
