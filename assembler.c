@@ -55,7 +55,7 @@ char sanity_checks(const struct line *line) {
                     error = TRUE;
                 }
                 l++;
-            } else if (l[0] != '_' && l[0] != '.' && !isalpha(l[0])) {
+            } else if (l[0] != '_' && l[0] != '.' && l[0] != '!' && !isalpha(l[0])) {
                 error_on_line(line, "label name must start with letter or underscore: %s", line->label);
                 error = TRUE;
             }
