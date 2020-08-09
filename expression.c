@@ -132,8 +132,12 @@ struct token *try_operator(const char *begin, const char **out_ptr) {
 struct token *try_unary(const char *begin, const char **out_ptr) {
     struct token *t = try_operator(begin, out_ptr);
     if (t != NULL) {
-        // see if it is an unary operator
-        if (operator_info[t->value].valence != 1) {
+        // special case: unary minus _is_ allowed, this is parsed as a NEG operator
+        if (t->value == OPR_SUB) {
+            t->value = OPR_NEG; // unary minus is negate
+        }
+        // if not, see if it is an unary operator
+        else if (operator_info[t->value].valence != 1) {
             // Not allowed. 
             free_tokens(t);
             return NULL;

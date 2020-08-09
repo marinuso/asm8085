@@ -32,6 +32,7 @@ intptr_t evalkwd_low(intptr_t input)  {return ( ((unsigned) input) & 0x00FF);}
 BINOP(NE, !=)
 UNOP(BOOL_NOT, !)
 UNOP(BIT_NOT, ~)
+UNOP(NEG, -)
 BINOP(MUL, *)
 BINOP(DIV, /)
 BINOP(MOD, %)

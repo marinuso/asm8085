@@ -23,6 +23,7 @@ _KWD(low)
 _OPR(!=,NE,       4,2)
 _OPR(!, BOOL_NOT, 9,1)
 _OPR(~, BIT_NOT,  9,1)
+_OPR(@@,NEG,      9,1) /* NOTE: this is a placeholder for unary minus, the 'name' doesn't matter */
 _OPR(*, MUL,      8,2)
 _OPR(/, DIV,      8,2)
 _OPR(%, MOD,      8,2)

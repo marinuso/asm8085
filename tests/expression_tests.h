@@ -85,24 +85,19 @@ EX_TEST(single_tokens, {
     TOKOP(^, XOR);
     TOKOP(|, OR);
     // Test numbers
+    /* Note: negative numbers are no longer single tokens. */
     TOKNUM("42",         42);
-    TOKNUM("-42",       -42);
     TOKNUM("$42",      0x42);
-    TOKNUM("-$42",    -0x42);
     TOKNUM("42h",      0x42);
     TOKNUM("42H",      0x42);
     TOKNUM("0x42",     0x42);
-    TOKNUM("-0x42",   -0x42);
     TOKNUM("0X42",     0x42);
     TOKNUM("42o",       042);
     TOKNUM("0o42",      042);
     TOKNUM("0O42",      042);
     TOKNUM("042",       042);
     TOKNUM("'*'",        42);
-//    TOKNUM("0b101010",   42);
     TOKNUM("101010b",    42);
-//    TOKNUM("-0b101010", -42);
-    TOKNUM("-101010b",  -42);
     TOKNUM("0aah",     0xAA);
     TOKNUM("0bbh",     0xBB);
     // Test backtick 
@@ -154,7 +149,8 @@ EX_TEST(token_string, {
     TOKCHK(r, OPERATOR, OPR_SUB);
     TOKCHK(r, NUMBER, 6);
     TOKCHK(r, OPERATOR, OPR_ADD);
-    TOKCHK(r, NUMBER, -7);
+    TOKCHK(r, OPERATOR, OPR_NEG);
+    TOKCHK(r, NUMBER, 7);
     TOKCHK(r, OPERATOR, OPR_MUL);
     TOKCHK(r, KEYWORD, KWD_high);
     TOKCHK_NAME(r, "hello"); 
@@ -205,6 +201,7 @@ EX_TEST(eval_simple, {
     EVAL_C(5 != 6);
     EVAL_C(!0); EVAL_C(!1);
     EVAL_C(~42);
+    EVAL_C(-42);
     EVAL_C(5*6);
     EVAL_C(6/5);
     EVAL_C(6%5);
@@ -250,6 +247,8 @@ EX_TEST(evaluation_order, {
     EVAL_C( (1 + 10) / 5 * (2 - 6) );
     EVAL_C( ~( 10 + 5 ) + 6 );
     EVAL_C( 6 + ~( 10 + 5 ) );
+    EVAL_C( -( 10 + 5 ) + 6 );
+    EVAL_C( 6 + -( 10 + 5 ) );
     
     
     // see if we can distinguish the - operator from negative numbers 
