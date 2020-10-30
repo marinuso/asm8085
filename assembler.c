@@ -422,7 +422,7 @@ int complete(struct asmstate *state, struct line *lines) {
                                     // Give a warning (but don't fail) if the argument doesn't fit
                                     if (result < -128 || result > 255) {
                                         error_on_line(line, "warning: result does not fit in byte, will be truncated");
-                                        error_on_line(line, "  %s == %02x", argmt->raw_text, result);
+                                        error_on_line(line, "  %s == %02x", argmt->raw_text, result & 255);
                                     }
                                     // Truncate to byte and store
                                     *pos++ = (unsigned char) result;
@@ -456,7 +456,7 @@ int complete(struct asmstate *state, struct line *lines) {
                             // Warn if value doesn't fit in 2 bytes
                             if (result < -32768 || result > 65535) {
                                 error_on_line(line, "warning: result does not fit in word, will be truncated");
-                                error_on_line(line, "  %s == %04x", argmt->raw_text, result);
+                                error_on_line(line, "  %s == %04x", argmt->raw_text, result & 65535);
                             }
                             
                             *pos++ = (unsigned char) (result & 0xFF); // Low byte first
@@ -508,14 +508,14 @@ int complete(struct asmstate *state, struct line *lines) {
                     // Immediate value is one byte long
                     if (result < -128 || result > 255) {
                         error_on_line(line, "warning: result does not fit in byte, will be truncated");
-                        error_on_line(line, "  %s == %02x", argmt->raw_text, result);
+                        error_on_line(line, "  %s == %02x", argmt->raw_text, result & 255);
                     }
                     *pos = (unsigned char) result;
                 } else {
                     // Immediate value is two bytes long
                     if (result < -32768 || result > 65535) {
                         error_on_line(line, "warning: result does not fit in byte, will be truncated");
-                        error_on_line(line, "  %s == %04x", argmt->raw_text, result);
+                        error_on_line(line, "  %s == %04x", argmt->raw_text, result & 65535);
                     }
                     *pos++ = (unsigned char) (result & 0xFF);
                     *pos = (unsigned char) (result >> 8);
