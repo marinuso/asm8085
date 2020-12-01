@@ -493,7 +493,8 @@ char parse_argmt(enum argmt_type types, struct argmt *argmt, const struct linein
                 }
                 /* Otherwise, fall through into EXPRESSION, as that's also a possibility */
             }  
-        
+            // below extra comment is needed verbatim to shut up new warning
+            // fall through
         case EXPRESSION:
             argmt->data.expr = parse_expr(s, info); // This prints its own error messages if needed
             if (argmt->data.expr != NULL) {

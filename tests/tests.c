@@ -26,7 +26,7 @@ struct test_result {
     char *fail_message;
 };
 
-#define MAX_FAIL_MESSAGE_LEN 128
+#define MAX_FAIL_MESSAGE_LEN 256
 
 /* FAIL and SUCCEED */
 #define SUCCEED do { \
@@ -38,7 +38,9 @@ struct test_result {
 #define FAIL_SET(msg, ...) do { \
     _test_result.result = 0; \
     _test_result.fail_message = calloc(MAX_FAIL_MESSAGE_LEN,sizeof(char)); \
-    snprintf(_test_result.fail_message, MAX_FAIL_MESSAGE_LEN, msg, ##__VA_ARGS__); \
+    int _test_ret = snprintf(_test_result.fail_message, \
+                                MAX_FAIL_MESSAGE_LEN, msg, ##__VA_ARGS__); \
+    if (_test_ret < 0) _test_result.fail_message[MAX_FAIL_MESSAGE_LEN-1] = '\0';\
 } while(0)
 
 #define FAIL(msg, ...) do { \

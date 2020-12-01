@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
                 
                 exit(1);
             
-            case 'h': help();
+            case 'h': help(); break;
             case 'o': outp = optarg; break;
             case 'l': list = optarg; break;
         }
