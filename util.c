@@ -131,7 +131,7 @@ char *copy_string(const char *string) {
         FATAL_ERROR("memory allocation failure");
     }
     
-    strncpy(new_string, string, bufsize);
+    strcpy(new_string, string);
     return new_string;
 }
 
