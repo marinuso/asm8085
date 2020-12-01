@@ -36,6 +36,7 @@ _DIR(pushorg)
 _DIR(poporg)
 _DIR(repeat)
 _DIR(endr)
+_DIR(end)
 
 /* Opcodes 
    

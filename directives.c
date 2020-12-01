@@ -694,8 +694,20 @@ int dir_repeat(struct asmstate *state) {
     return TRUE;
 }
                 
-            
-
+// 'end': stop assembly
+int dir_end(struct asmstate *state) {
+    struct line *cur = state->cur_line;
+    no_asm_output(cur);
+    
+    if (cur->n_argmts != 0) {
+        error_on_line(cur, "end: takes no arguments");
+        return FALSE;
+    }
+    
+    error_on_line(cur, "end: assembly stopped here");
+    cur->next_line = NULL;
+    return TRUE;
+}
 
     
     
