@@ -301,6 +301,10 @@ struct line *parse_line(const char *text, struct line *prev, const char *filenam
         l->info.lineno = 1;
     }
     
+    // If the line starts with unrecognized control characters, ignore them
+    // (This makes it work with the Cowgol 8080 compiler's output)
+    while (*text && iscntrl(*text) && *text != '\t') text++;
+    
     // Copy the text and filename across
     l->raw_text = copy_string(text);
     comment = comment_stop(l->raw_text);
