@@ -64,7 +64,7 @@ struct line *expand_macro(struct line *invocation, struct maclist *macros, struc
     char error = FALSE, cur_error = FALSE;
     char errstr[128] = {'\0'};
  
-    struct line *start_line = NULL, *line_prev = NULL, *line_cur, *line_mac; 
+    struct line *start_line = NULL, *line_prev = NULL, *line_cur = invocation, *line_mac; 
     
     // Sanity check
     if (invocation->instr.type != MACRO) {
@@ -155,7 +155,12 @@ struct line *expand_macro(struct line *invocation, struct maclist *macros, struc
         return NULL;
     } else {
         *last = line_cur;
-        return start_line;
+        if (start_line == NULL) {
+            // Empty macro definition: simply continue on the next line
+            return line_cur->next_line;
+        } else {
+            return start_line;
+        }
     }
 }
 

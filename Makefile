@@ -1,6 +1,6 @@
 CC = gcc
 
-CFLAGS = -Wall -Wextra
+CFLAGS = -Wall -Wextra -O2
 
 CFILES = $(shell ls *.c | grep -v asm8085.c)
 OBJ = $(CFILES:.c=.o)
