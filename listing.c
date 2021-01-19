@@ -47,7 +47,7 @@ void write_listing(FILE *f, const struct asmstate *state, const struct line *lin
     for (line=lines; line!=NULL; line=line->next_line) {
         // Print line number, if it isn't auto-generated
         if (line->info.lineno == 0) fprintf(f, "       ");
-        else fprintf(f, "%6d ", line->info.lineno);
+        else fprintf(f, "%5d ", line->info.lineno);
         
         // If the line defines bytes, print the location 
         if (line->n_bytes > 0) fprintf(f, "%04X: ", line->location);
