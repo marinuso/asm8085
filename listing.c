@@ -13,7 +13,7 @@ void write_bytes(FILE *f, const struct line *l, int offset, int first) {
     int n = l->n_bytes - offset;
     
     
-    if (!first) fprintf(f,"             ");
+    if (!first) fprintf(f,"            ");
     if (n<0) FATAL_ERROR("negative byte amount");
     
     const unsigned char *b = l->bytes + offset; 
