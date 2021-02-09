@@ -1,8 +1,8 @@
-/* asm8085 (C) 2019 Marinus Oosters */
+/* asm8085 (C) 2019-21 Marinus Oosters */
 
 #define LINE(x) do { \
     error = FALSE; \
-    l = parse_line(x, l, "test", &error); \
+    l = parse_line_part(TRUE, x, l, "test", &error); \
     if(error) { \
         free_line(l, FALSE); \
         FAIL("error parsing line: %s", x); \
@@ -83,8 +83,8 @@ TEST(macros,
     
     LINE("testmacro macro one,two,three");
     mac_lines = l;
-    LINE("!one      !two  !three");
-    LINE("@label    !two  !three");
+    LINE("#one      #two  #three");
+    LINE("@label    #two  #three");
     LINE("          mov   a,b");
     LINE("          jz    @label");
     LINE("          endm");

@@ -55,7 +55,7 @@ char sanity_checks(const struct line *line) {
                     error = TRUE;
                 }
                 l++;
-            } else if (l[0] != '_' && l[0] != '.' && l[0] != '!' && !isalpha(l[0])) {
+            } else if (l[0] != '_' && l[0] != '.' && l[0] != *MACRO_ARG_PFX && !isalpha(l[0])) {
                 error_on_line(line, "label name must start with letter or underscore: %s", line->label);
                 error = TRUE;
             }
@@ -199,7 +199,7 @@ struct line *asm_lines(struct asmstate *state, struct line *lines) {
     char bar;
     struct line *macro, *macro_end;
     
-    state->prev_line = parse_line("", NULL, "", &bar); // Dummy line with location set to 0
+    state->prev_line = parse_line_part(TRUE, "", NULL, "", &bar); // Dummy line with location set to 0
     state->cur_line = lines;
     if (lines == NULL) goto error;
     

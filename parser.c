@@ -1,8 +1,9 @@
-/* asm8085 (C) 2019-20 Marinus Oosters */
+/* asm8085 (C) 2019-21 Marinus Oosters */
 
 #include "parser.h"
 
 #define LINE_BUF_SIZE 512 
+#define MAX_SPLIT_LINE 256
 
 #define PARSE_ERROR "%s: line %d: parse error: "
 
@@ -60,6 +61,7 @@ struct line *read_file(const char *filename) {
     char error = FALSE;
     
     struct line *begin = NULL, *prev = NULL, *cur = NULL;
+    struct line *parse_first = NULL;
     int idx;
     char line_buf[LINE_BUF_SIZE];
     FILE *file = fopen(filename, "r");
@@ -81,11 +83,11 @@ struct line *read_file(const char *filename) {
         
         // Parse the line
         prev = cur; 
-        cur = parse_line(line_buf, prev, filename, &error);
+        cur = parse_line(line_buf, prev, filename, &error, &parse_first);
         if (cur == NULL) {
             FATAL_ERROR("failed to allocate memory for line");
         } else if (prev == NULL) {
-            begin = cur; 
+            begin = parse_first;
         }
     }
     
@@ -261,15 +263,16 @@ void parse_arguments(struct line *l, const char *ptr, char *error) {
     free(parse_buf);
 }
 
-/* Zero out the first comment character (;) that isn't in a string. Returns location if one was found. */
-char *comment_stop(char *ptr) {
+/* Find the first given character on a line that isn't in a string. 
+ * Returns location if one was found. */
+char *find_char(char *ptr, char ch) {
     char strdelim;
     for (strdelim='\0'; *ptr; ptr++) {  
         if (!strdelim) {
             // Not in string. 
             
             // Comment? Then stop.
-            if (*ptr == ';') { *ptr = '\0'; return ptr; }
+            if (*ptr == ch) { return ptr; }
             // String start?
             else if (*ptr == '"' || *ptr == '\'') { strdelim = *ptr; }
         } else {
@@ -283,9 +286,73 @@ char *comment_stop(char *ptr) {
     
     return NULL;
 }
+
+/* ! followed by a character this function matches, splits a line */
+int splitNext(char ch) {
+    return ch == ' '    // space or tab
+        || ch == '\t'
+        || ch == '.'    // local labels
+        || ch == '@'
+        || ch == *MACRO_ARG_PFX
+        || isalpha(ch); // actual label
+        
+}
                 
 /* Parse a line. */
-struct line *parse_line(const char *text, struct line *prev, const char *filename, char *error) {
+struct line *parse_line(const char *text_in, 
+                        struct line *prev, 
+                        const char *filename, 
+                        char *error, 
+                        struct line **begin) {
+                            
+    char *text = copy_string(text_in);
+    // find comment and temporarily terminate the string there
+    char *comment = find_char(text, ';');
+    if (comment == text || *text == '\0') {
+        // line is empty or starts with comment, return empty line
+        struct line *l = parse_line_part(TRUE, text, prev, filename, error);
+        if (*begin == NULL) *begin = l;
+        free(text);
+        return l;
+    } 
+        
+    if (comment != NULL) *comment = '\0';
+
+    // `!' (outside of character constants and up to comment) should split a line
+    // except `!=` and `!` are not-equal and not, so the split should only happen
+    // if the next character is whitespace or '. / @ /
+    char *search, *next, *cur = text;
+    char first = TRUE;
+    while (cur && *cur) {
+        // find next split
+        search = cur-1;
+        do {
+            search = find_char(search+1, '!');
+        } while (search != NULL && !splitNext(search[1]));
+        next = search;
+        
+        if (next == NULL) {
+            // include comment in last part
+            if (comment != NULL) *comment = ';';
+            prev = parse_line_part(first, cur, prev, filename, error); 
+            if (*begin == NULL) *begin = prev;
+        } else {
+            // temporarily terminate string and extract part
+            *next = '\0';
+            prev = parse_line_part(first, cur, prev, filename, error);
+            if (*begin == NULL) *begin = prev;
+            first = FALSE;
+            // restore and skip the split character
+            *next++ = '!';
+        }
+        cur = next;
+    }
+    
+    free(text);
+    return prev;
+}    
+    
+struct line *parse_line_part(char line_start, const char *text, struct line *prev, const char *filename, char *error) {
     char *comment;
     const char *parse_ptr;
     struct line *l = calloc(1, sizeof(struct line));
@@ -295,7 +362,7 @@ struct line *parse_line(const char *text, struct line *prev, const char *filenam
     // Link this line to the previous line if there is one
     if (prev) {
         prev->next_line = l;
-        l->info.lineno = prev->info.lineno + 1;
+        l->info.lineno = prev->info.lineno + (!!line_start);
         l->info.lastlabel = copy_string(prev->info.lastlabel);
     } else {
         l->info.lineno = 1;
@@ -307,7 +374,8 @@ struct line *parse_line(const char *text, struct line *prev, const char *filenam
     
     // Copy the text and filename across
     l->raw_text = copy_string(text);
-    comment = comment_stop(l->raw_text);
+    comment = find_char(l->raw_text, ';');
+    if (comment != NULL) *comment = '\0';
     l->info.filename = copy_string(filename);
     
     // Parse the three parts of the line

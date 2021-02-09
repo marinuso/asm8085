@@ -1,7 +1,7 @@
 	; Macro: write N bytes of N digits
 rep:	macro	n
-	 repeat	!n
-	  db	'0' + !n
+	 repeat	#n
+	  db	'0' + #n
 	 endr
 	endm
 

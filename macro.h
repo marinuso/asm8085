@@ -14,6 +14,8 @@
 #define EXPANSION_TEMPLATE "_%s_%d_"
 #define EXPANSION_ID_MAX_LEN 128
 
+#define MACRO_ARG_PFX "#"
+
 // Macro
 struct macro {
     char *name;

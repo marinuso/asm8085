@@ -75,10 +75,10 @@ int dir_include(struct asmstate *state) {
     
  
     char error = 0;
-    struct line *pre_line = parse_line(pre_include, cur_line, cur_line->info.filename, &error);
+    struct line *pre_line = parse_line_part(TRUE, pre_include, cur_line, cur_line->info.filename, &error);
     if (error || pre_line == NULL) FATAL_ERROR("failed to construct pre_line");
     error = 0;
-    struct line *post_line = parse_line(post_include, flastline, flastline->info.filename, &error);
+    struct line *post_line = parse_line_part(TRUE, post_include, flastline, flastline->info.filename, &error);
     if (error || post_line == NULL) FATAL_ERROR("failed to construct post_line");
     
     // connect up the lines

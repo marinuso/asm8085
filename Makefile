@@ -21,7 +21,7 @@ test: tests/tests
 	cd tests && ./tests
 
 tests/tests: tests/tests.c $(OBJ) $(TESTS)
-	$(CC) $(CFLAGS) -I./tests -o tests/tests tests/tests.c $(OBJ)
+	$(CC) $(CFLAGS) -g -I./tests -o tests/tests tests/tests.c $(OBJ)
 
 parser_types.h: instructions.h
 

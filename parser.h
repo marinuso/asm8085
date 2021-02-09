@@ -1,4 +1,4 @@
-/* asm8085 (C) 2019 Marinus Oosters */
+/* asm8085 (C) 2019-21 Marinus Oosters */
 
 #ifndef __PARSER_H__
 #define __PARSER_H__
@@ -27,8 +27,11 @@ struct line *read_file(const char *filename);
  */
 struct line *free_line(struct line *line, char recursive);
 
-/* Parse a line. */
-struct line *parse_line(const char *text, struct line *prev, const char *filename, char *error);
+/* Parse a line */
+struct line *parse_line(const char *text, struct line *prev, const char *filename, char *error, struct line **begin);
+
+/* Parse a partial line (without ! marks). */
+struct line *parse_line_part(char line_start, const char *text, struct line *prev, const char *filename, char *error);
 
 /* Parse a register */
 enum reg_e parse_reg(const char *text);

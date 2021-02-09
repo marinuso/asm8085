@@ -226,7 +226,7 @@ struct token *try_backtick_opcode(const char *begin, const char **out_ptr) {
     
     // parse the line
     char error = FALSE;
-    struct line *line = parse_line(p_line, NULL, text, &error);
+    struct line *line = parse_line_part(FALSE, p_line, NULL, text, &error);
     if (line == NULL || error) goto free;
     
     // only opcodes are allowed

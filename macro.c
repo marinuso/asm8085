@@ -112,7 +112,7 @@ struct line *expand_macro(struct line *invocation, struct maclist *macros, struc
         
         // "old" = "!" + trim(arg)
         tmp = trim_string(mac_argptr->raw_text);
-        replacements[i].old = join_strings("!", tmp);
+        replacements[i].old = join_strings(MACRO_ARG_PFX, tmp);
         free(tmp);
         
         // "new" = input string, trimmed and with braces removed if there are any
@@ -134,7 +134,7 @@ struct line *expand_macro(struct line *invocation, struct maclist *macros, struc
         // Macro argument substitution
         new_line = string_replace(line_mac->raw_text, replacements, n_argmts+1);
         cur_error = FALSE;
-        line_cur = parse_line(new_line, line_prev, errstr, &cur_error);
+        line_cur = parse_line_part(TRUE, new_line, line_prev, errstr, &cur_error);
         if (line_prev == NULL) line_cur->info.lineno = line_mac->info.lineno;
         
         if (cur_error) {

@@ -1,12 +1,12 @@
-/* asm8085 (C) 2019-20 Marinus Oosters */
+/* asm8085 (C) 2019-21 Marinus Oosters */
 
 // This file contains tests for the functions in parser.c
 
 // Macro: parse a line and do some sanity checks, then run code, and free line afterwards
 #define TEST_LINE(str, code) do { \
-    line = parse_line(str, NULL, "test", &error); \
-    if (line == NULL) FAIL("parse_line gave NULL for %s", #str); \
-    if (error) FAIL("parse_line set error for %s", #str); \
+    line = parse_line_part(FALSE, str, NULL, "test", &error); \
+    if (line == NULL) FAIL("parse_line_part gave NULL for %s", #str); \
+    if (error) FAIL("parse_line_part set error for %s", #str); \
     if (strcmp(line->raw_text, str)) FAIL("raw_text does not match input string for %s", #str); \
     code; \
     if (line != NULL) { free_line(line, FALSE); line=NULL; } \
@@ -58,7 +58,7 @@
 } while(0)
 
 // Parse various types of line
-TEST(parse_line, struct line *line, if(line != NULL) free_line(line, FALSE), {
+TEST(parse_line_part, struct line *line, if(line != NULL) free_line(line, FALSE), {
     char error = 0;
 
     
@@ -111,6 +111,45 @@ TEST(parse_line, struct line *line, if(line != NULL) free_line(line, FALSE), {
         if (arg != NULL) FAIL("spurious extra argument: '%s'", arg->raw_text);
     });  
 })
+
+// Parse line with splits
+TEST(parse_line
+,
+struct line *line;
+struct line *lastline;
+struct line *begin;
+char error;
+,
+if (begin != NULL) free_line(begin, TRUE);
+,
+{
+    /* This should resolve to:
+     1  label
+     2          mov a,b
+     3          mov c,d
+     4          ;Empty line 
+     5  label2  db  '!!!'
+     6          ;Empty line
+     7          ;Empty line ;Comment! Comment!!!
+     */
+    
+    /*                  --1--|----2---|---3----|4|-------5-------|6|-----------7--------- */    
+    char test_line[] = "label! mov a,b! mov c,d! !label2 db '!!!'! ! ;Comment! Comment!!!";
+    begin = NULL;
+    lastline = parse_line(test_line, NULL, "parse_line", &error, &begin);
+    line = begin;
+    
+    LINE_CONTENTS("label", 0, NONE); line = line->next_line; //1
+    LINE_CONTENTS(NULL, 2, OPCODE, OP_mov); line = line->next_line; //2
+    LINE_CONTENTS(NULL, 2, OPCODE, OP_mov); line = line->next_line; //3
+    LINE_CONTENTS(NULL, 0, NONE); line = line->next_line; //4
+    LINE_CONTENTS("label2", 1, DIRECTIVE, DIR_db); line = line->next_line; //5
+    LINE_CONTENTS(NULL, 0, NONE); line = line->next_line; //6
+    LINE_CONTENTS(NULL, 0, NONE); //7
+    
+    if (line != lastline) FAIL("did not end up at final part of line");
+})
+
 
 
 #define MKLINEINFO \
@@ -232,7 +271,7 @@ TEST(parse_argmt,
     l.lineno = 1;
     
     char error = FALSE;
-    line = parse_line("  test  a,b,'string','another',5 + 6 * 7,8 * 9 + 10,psw", NULL, "test", &error);
+    line = parse_line_part(FALSE, "  test  a,b,'string','another',5 + 6 * 7,8 * 9 + 10,psw", NULL, "test", &error);
     if (error) FAIL("parsing line gave error");
     if (line->n_argmts != 7) FAIL("not all arguments were parsed");
     
@@ -262,7 +301,7 @@ TEST(copy_line,
     l.lineno = 1;
     
     char error = FALSE;
-    line = parse_line("label test a,psw,5+6", NULL, "test", &error);
+    line = parse_line_part(FALSE, "label test a,psw,5+6", NULL, "test", &error);
     if (error) FAIL("parsing line gave error");
     
     // Check that everything is there

@@ -2,15 +2,15 @@
 	;; Define three macros
 
 add_one	macro	n,v
-!n	equ	(!v) + 1
+#n	equ	(#v) + 1
 	endm
 
 add_two	macro	n,v
-!n	equ	(!v) + 2
+#n	equ	(#v) + 2
 	endm
 
 mul_two	macro	n,v
-!n	equ	(!v) * 2
+#n	equ	(#v) * 2
 	endm
 
 	;; Expand the macros

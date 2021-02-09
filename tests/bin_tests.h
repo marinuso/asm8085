@@ -58,7 +58,4 @@ BIN_FILE_TEST(align)
 BIN_FILE_TEST(pushorg_test)
 BIN_FILE_TEST(nesting)
 BIN_FILE_TEST(repeats)
-
-
-    
-    
+BIN_FILE_TEST(splitline)
