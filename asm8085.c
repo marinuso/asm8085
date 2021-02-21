@@ -96,7 +96,9 @@ int main(int argc, char **argv) {
     }
     
     // Write the binary file
-    if ((outf = fopen(outp, "w")) == NULL) {
+    if (!strcmp(outp, "-")) {
+        outf = stdout;  // allow output to STDOUT
+    } else if ((outf = fopen(outp, "w")) == NULL) {
         fprintf(stderr, "cannot open %s for writing: %s\n", outp, strerror(errno));
         exit(1);
     }
@@ -107,17 +109,19 @@ int main(int argc, char **argv) {
         exit(1);
     }
     
-    fclose(outf);
+    if (outf != stdout) fclose(outf);
     
     // Write the listing if the user wanted one
     if (list != NULL) {
-        if ((listf = fopen(list, "w")) == NULL) {
+        if (!strcmp(list, "-")) {
+            listf = stdout; // allow listing output to stdout
+        } else if ((listf = fopen(list, "w")) == NULL) {
             fprintf(stderr, "cannot open %s for writing: %s\n", list, strerror(errno));
             exit(1);
         }
         
         write_listing(listf, state, lines);
-        fclose(listf);
+        if (listf != stdout) fclose(listf);
     }
     
     return 0;
