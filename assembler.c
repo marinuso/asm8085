@@ -221,25 +221,24 @@ struct line *asm_lines(struct asmstate *state, struct line *lines) {
         set_base(state->knowns, state->cur_line->info.lastlabel);
         set_base(state->unknowns, state->cur_line->info.lastlabel);
         
-        // If the current line has a label, then it is defined as the current location
-        if (state->cur_line->label != NULL && !(
-            state->cur_line->instr.type == MACRO   // Macros are named by their labels and don't count
-            || (state->cur_line->instr.type == DIRECTIVE 
-                && state->cur_line->instr.instr == DIR_equ)  // Definitions don't count either
-            )) {
-            // See if it is already known. This would be an error.
+        // If the current line has a label and is not a macro or EQU definition, then it is
+        // defined as its current location. In any case, names may not conflict.
+        if (state->cur_line->label != NULL) {
+            // Do we already have this name? If so, this is an error.
             if (get_var(state->knowns, state->cur_line->label, &foo)
             ||  get_var(state->unknowns, state->cur_line->label, &foo)) {
                 error_on_line(state->cur_line, "label is already defined elsewhere: %s", state->cur_line->label);
                 goto error;
             }
             
-            // If not, we know what the value is.
-            set_var(state->knowns, state->cur_line->label, state->cur_line->location);
-            
-            
+            // If this line is not a macro or EQU definition, we now know its value.
+            const struct line *l = state->cur_line; 
+            if (l->instr.type != MACRO &&
+                !(l->instr.type == DIRECTIVE && l->instr.instr == DIR_equ)) {
+                    set_var(state->knowns, l->label, l->location);
+            }
         }
-                
+               
         // Handle the current line 
         switch(state->cur_line->instr.type) {
             case NONE: // No instruction on the line.
