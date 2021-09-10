@@ -12,7 +12,7 @@
 
 
 // Output on error: "<file>: line <line>: error\n"
-void error_on_line(const struct line *line, char *message, ...) {
+void error_on_line(const struct line *line, const char *message, ...) {
     fprintf(stderr, ERROR, line->info.filename, line->info.lineno);
     va_list args;
     va_start(args, message);
@@ -22,7 +22,7 @@ void error_on_line(const struct line *line, char *message, ...) {
 }
 
 // Output on error: "<file>: error\n"
-void error_in_file(const struct line *line, char *message, ...) {
+void error_in_file(const struct line *line, const char *message, ...) {
     fprintf(stderr, "%s: ", line->info.filename);
     va_list args;
     va_start(args, message);

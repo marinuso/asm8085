@@ -37,6 +37,7 @@ _DIR(poporg)
 _DIR(repeat)
 _DIR(endr)
 _DIR(end)
+_DIR(cpu)
 
 /* Opcodes 
    

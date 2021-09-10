@@ -92,6 +92,8 @@ struct asmstate *init_asmstate() {
     
     state->n_includes = 0;
     state->n_macro_exp = 0;
+    
+    state->cpu = 8085; /* default processor is 8085 of course */
 
     return state;
 }

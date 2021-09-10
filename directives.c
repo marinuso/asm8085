@@ -135,6 +135,39 @@ int dir_incbin(struct asmstate *state) {
     return TRUE;
 }
 
+// Set CPU to 8080 or 8085
+int dir_cpu(struct asmstate *state) {
+    struct line *cur_line = state->cur_line;
+    no_asm_output(cur_line);
+    
+    const char *error = "cpu: argument must be 8080 or 8085\n";
+    
+    // There must be one argument
+    if (cur_line->n_argmts != 1) {
+        error_on_line(cur_line, error);
+        return FALSE;
+    }
+    
+    // The argument must be a valid expression
+    if (!parse_argmt(EXPRESSION, cur_line->argmts, &cur_line->info)) {
+        return FALSE;
+    }
+    
+    // The experssion must be fully defined at this point,
+    // and evaluate to either 8080 or 8085.
+    struct parsed_expr *expr = cur_line->argmts->data.expr;
+    intptr_t cpu = 0;
+    if (!eval_on_line(state, expr, &cpu, error)) {
+        return FALSE;
+    } else if (cpu == 8080 || cpu == 8085) {
+        state->cpu = (int)cpu;
+        return TRUE;
+    } else {
+        error_on_line(cur_line, error);
+        return FALSE;
+    }
+}
+
 // Handle an 'org' directive
 int dir_org(struct asmstate *state) {
     struct line *cur_line = state->cur_line;

@@ -36,6 +36,8 @@ struct asmstate {
     
     int n_macro_exp; // count how many macro expansions we've ahd
     int n_includes; // count how many includes we've had
+    
+    int cpu; // 8080 or 8085, this selects loads.
 };
 
 // org stack item
