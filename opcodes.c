@@ -136,12 +136,17 @@ void alloc_line_bytes(struct line *line, size_t amt) {
 }
 
 // Define opcode generating functions
-#define _OP(name, instr) \
+#define _OP(name, is8080, instr) \
 int op_##name(struct asmstate *state) { \
     char opcode[] = #name; \
     struct line *line = state->cur_line; \
-    instr; \
-    return TRUE; \
+    if (is8080 || state->cur_line->cpu == 8085) { \
+        instr; \
+        return TRUE; \
+    } else { \
+        error_on_line(line, "%s: 8085-specific opcode used in 8080 mode", opcode); \
+        return FALSE; \
+    } \
 } 
 
 #include "instructions.h"

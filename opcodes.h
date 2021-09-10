@@ -6,7 +6,7 @@
 #include "expression.h"
 #include "util.h"
 
-#define _OP(name, _) int op_##name(struct asmstate *);
+#define _OP(name, is8080, _) int op_##name(struct asmstate *);
 #include "instructions.h"
 
 #endif

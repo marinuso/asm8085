@@ -212,6 +212,7 @@ struct line *asm_lines(struct asmstate *state, struct line *lines) {
     }
     
     while (state->cur_line != NULL) {
+        state->cur_line->cpu = state->cpu; /* set current cpu mode for this line */
         state->cur_line->location = state->prev_line->location + state->prev_line->n_bytes;
             
         if (state->cur_line->location > 0xFFFF) {
@@ -283,7 +284,7 @@ struct line *asm_lines(struct asmstate *state, struct line *lines) {
             case OPCODE: // Opcode
                 switch(state->cur_line->instr.instr) {
                     
-                    #define _OP(op, _)\
+                    #define _OP(op, is8080, _)\
                     case OP_##op:\
                         if (!op_##op(state)) goto error;\
                         break;

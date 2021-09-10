@@ -5,7 +5,7 @@
 
 // Opcodes and assembler directives 
 enum opcode {
-    #define _OP(op, _) OP_##op,
+    #define _OP(op, is8080, _) OP_##op,
     #include "instructions.h"
 };
 
@@ -77,6 +77,7 @@ struct line {
     unsigned char *bytes;
     int needs_process;
     int location;
+    int cpu; /* 8080 or 8085 mode */
     
 };
 
